@@ -1,0 +1,9 @@
+{
+  "pid": 12908,
+  "elapsed_seconds": 10.00427308306098,
+  "cpu_seconds": 0.067715542,
+  "cpu_percent_of_one_core": 0.6768661894551289,
+  "rss_start_bytes": 64094208,
+  "rss_end_bytes": 88948736,
+  "note": "Only an idle measurement if no scan, file changes or user interactions occurred during the interval."
+}

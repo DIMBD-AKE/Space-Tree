@@ -1,0 +1,589 @@
+{
+  "allocated_bytes" : 287760355328,
+  "cache_note" : "Existing tree; first pass has uncontrolled cache state, subsequent passes use the OS metadata cache.",
+  "date" : "2026-10-05T10:29:28Z",
+  "disk_available_bytes" : 8589377536,
+  "disk_total_bytes" : 494384795648,
+  "disk_used_bytes" : 485795418112,
+  "entries" : 2399715,
+  "excluded_volumes" : 0,
+  "files" : 2128517,
+  "first_scan_ms" : 117595.664792,
+  "logical_bytes" : 302288306971,
+  "memory_note" : "Process RSS includes Swift runtime and linked UI frameworks. Peak includes baseline and benchmark data.",
+  "native_scan" : {
+    "median_ms" : 117595.664792,
+    "min_ms" : 117595.664792,
+    "p95_ms" : 117595.664792
+  },
+  "os" : "Version 26.5.2 (Build 25F84)",
+  "parallelism" : 1,
+  "path" : "\/Users\/deurim",
+  "physical_memory_bytes" : 17179869184,
+  "processors" : 10,
+  "runs" : 1,
+  "snapshot_rss_bytes" : 41025536,
+  "top_level" : [
+    {
+      "allocated_bytes" : 144942510080,
+      "files" : 915214,
+      "logical_bytes" : 157747390507,
+      "name" : "Desktop",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 85284978688,
+      "files" : 671885,
+      "logical_bytes" : 88505839967,
+      "name" : "Library",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 17713549312,
+      "files" : 29378,
+      "logical_bytes" : 17538583701,
+      "name" : ".codex",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 8896360448,
+      "files" : 244750,
+      "logical_bytes" : 8310482851,
+      "name" : ".cache",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 7053520896,
+      "files" : 44234,
+      "logical_bytes" : 6933170826,
+      "name" : "orca",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 4847734784,
+      "files" : 27500,
+      "logical_bytes" : 4778146788,
+      "name" : ".npm",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 4286115840,
+      "files" : 20823,
+      "logical_bytes" : 4242259438,
+      "name" : ".nuget",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 2563678208,
+      "files" : 18248,
+      "logical_bytes" : 2523459046,
+      "name" : ".dotnet",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 2014851072,
+      "files" : 15697,
+      "logical_bytes" : 1979244675,
+      "name" : ".local",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 1302937600,
+      "files" : 17367,
+      "logical_bytes" : 1248015783,
+      "name" : "gstack",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 1226809344,
+      "files" : 19001,
+      "logical_bytes" : 1167987095,
+      "name" : ".claude",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 1052524544,
+      "files" : 366,
+      "logical_bytes" : 1051707154,
+      "name" : ".rustup",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 1000820736,
+      "files" : 19869,
+      "logical_bytes" : 943869320,
+      "name" : ".vscode",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 925421568,
+      "files" : 1175,
+      "logical_bytes" : 921590518,
+      "name" : ".copilot",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 828837888,
+      "files" : 15706,
+      "logical_bytes" : 778454729,
+      "name" : ".bun",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 641966080,
+      "files" : 8188,
+      "logical_bytes" : 619797306,
+      "name" : ".gradle",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 596692992,
+      "files" : 219,
+      "logical_bytes" : 596165906,
+      "name" : ".junie",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 627572736,
+      "files" : 10753,
+      "logical_bytes" : 585842034,
+      "name" : "Pictures",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 620589056,
+      "files" : 18077,
+      "logical_bytes" : 576289202,
+      "name" : ".cargo",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 319057920,
+      "files" : 7311,
+      "logical_bytes" : 299297447,
+      "name" : "go",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 294895616,
+      "files" : 682,
+      "logical_bytes" : 293151632,
+      "name" : "Downloads",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 231055360,
+      "files" : 146,
+      "logical_bytes" : 230851734,
+      "name" : "Music",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 129826816,
+      "files" : 871,
+      "logical_bytes" : 127022867,
+      "name" : "Documents",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 112275456,
+      "files" : 11,
+      "logical_bytes" : 112241771,
+      "name" : ".unity",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 59633664,
+      "files" : 77,
+      "logical_bytes" : 58343564,
+      "name" : ".config",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 68399104,
+      "files" : 7574,
+      "logical_bytes" : 44185857,
+      "name" : ".gem",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 20172800,
+      "files" : 1,
+      "logical_bytes" : 20171504,
+      "name" : ".skiko",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 56238080,
+      "files" : 12752,
+      "logical_bytes" : 15246358,
+      "name" : ".cocoapods",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 14102528,
+      "files" : 3,
+      "logical_bytes" : 14092622,
+      "name" : ".AppLovinQualityService",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 8118272,
+      "files" : 3,
+      "logical_bytes" : 8114073,
+      "name" : ".plastic4",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 4362240,
+      "files" : 3,
+      "logical_bytes" : 4275680,
+      "name" : ".unity-orchestrator",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 3657728,
+      "files" : 45,
+      "logical_bytes" : 3526283,
+      "name" : ".android",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 2576384,
+      "files" : 66,
+      "logical_bytes" : 2405437,
+      "name" : ".redis-insight",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 1822720,
+      "files" : 4,
+      "logical_bytes" : 1816036,
+      "name" : ".templateengine",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 1871872,
+      "files" : 232,
+      "logical_bytes" : 1584156,
+      "name" : ".thumbnails",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 1138688,
+      "files" : 13,
+      "logical_bytes" : 1117243,
+      "name" : ".anydesk",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 983040,
+      "files" : 10,
+      "logical_bytes" : 962229,
+      "name" : ".agent-browser",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 835584,
+      "files" : 13,
+      "logical_bytes" : 801761,
+      "name" : ".zsh_sessions",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 139264,
+      "files" : 1,
+      "logical_bytes" : 136131,
+      "name" : ".zsh_history",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 184320,
+      "files" : 30,
+      "logical_bytes" : 113081,
+      "name" : ".agents",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 90112,
+      "files" : 2,
+      "logical_bytes" : 90112,
+      "name" : ".vscode-shared",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 57344,
+      "files" : 1,
+      "logical_bytes" : 53682,
+      "name" : ".claude.json",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 53248,
+      "files" : 1,
+      "logical_bytes" : 49438,
+      "name" : ".zcompdump",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 184320,
+      "files" : 49,
+      "logical_bytes" : 45704,
+      "name" : ".gstack",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 40960,
+      "files" : 1,
+      "logical_bytes" : 39970,
+      "name" : ".claude.json.backup",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 40960,
+      "files" : 1,
+      "logical_bytes" : 37806,
+      "name" : ".zcompdump.ideulim-ui-Macmini.local.29556",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 40960,
+      "files" : 1,
+      "logical_bytes" : 37806,
+      "name" : ".zcompdump.ideulim-ui-Macmini.local.43595",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 40960,
+      "files" : 1,
+      "logical_bytes" : 37372,
+      "name" : ".zcompdump.ideulim-ui-Macmini.local.53272",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 49152,
+      "files" : 91,
+      "logical_bytes" : 24168,
+      "name" : "Movies",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 36864,
+      "files" : 6,
+      "logical_bytes" : 23208,
+      "name" : ".ssh",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 24576,
+      "files" : 1,
+      "logical_bytes" : 20484,
+      "name" : ".DS_Store",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 49152,
+      "files" : 11,
+      "logical_bytes" : 19078,
+      "name" : ".aspnet",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 32768,
+      "files" : 5,
+      "logical_bytes" : 16911,
+      "name" : ".orca",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 643072,
+      "files" : 9,
+      "logical_bytes" : 15681,
+      "name" : "Applications",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 40960,
+      "files" : 9,
+      "logical_bytes" : 15196,
+      "name" : ".docker",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 16384,
+      "files" : 1,
+      "logical_bytes" : 13348,
+      "name" : ".zcompdump.ideulim-ui-Macmini.local.4171",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 12288,
+      "files" : 3,
+      "logical_bytes" : 6336,
+      "name" : ".kiro",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 4096,
+      "files" : 1,
+      "logical_bytes" : 2370,
+      "name" : ".kube",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 4096,
+      "files" : 1,
+      "logical_bytes" : 1717,
+      "name" : "skills-lock.json",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 12288,
+      "files" : 3,
+      "logical_bytes" : 461,
+      "name" : ".unity-mcp",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 4096,
+      "files" : 1,
+      "logical_bytes" : 377,
+      "name" : ".gitconfig",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 4096,
+      "files" : 1,
+      "logical_bytes" : 355,
+      "name" : ".zshrc",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 12288,
+      "files" : 3,
+      "logical_bytes" : 218,
+      "name" : ".tripo",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 8192,
+      "files" : 2,
+      "logical_bytes" : 150,
+      "name" : ".aws",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 3,
+      "logical_bytes" : 147,
+      "name" : ".swiftpm",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 4096,
+      "files" : 1,
+      "logical_bytes" : 117,
+      "name" : ".zprofile",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 4096,
+      "files" : 1,
+      "logical_bytes" : 116,
+      "name" : ".gemini",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 4096,
+      "files" : 1,
+      "logical_bytes" : 112,
+      "name" : ".ai",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 4096,
+      "files" : 1,
+      "logical_bytes" : 112,
+      "name" : ".codebuddy.json",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 4096,
+      "files" : 1,
+      "logical_bytes" : 47,
+      "name" : ".profile",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 4096,
+      "files" : 1,
+      "logical_bytes" : 31,
+      "name" : ".tcshrc",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 4096,
+      "files" : 1,
+      "logical_bytes" : 21,
+      "name" : ".zshenv",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 4096,
+      "files" : 1,
+      "logical_bytes" : 8,
+      "name" : ".CFUserTextEncoding",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 0,
+      "logical_bytes" : 0,
+      "name" : ".Trash",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 1,
+      "logical_bytes" : 0,
+      "name" : ".homebrew",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 0,
+      "logical_bytes" : 0,
+      "name" : "Postman",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 2,
+      "logical_bytes" : 0,
+      "name" : "Public",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 0,
+      "logical_bytes" : 0,
+      "name" : "RiderSnapshots",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 0,
+      "logical_bytes" : 0,
+      "name" : "Unity user templates",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 0,
+      "logical_bytes" : 0,
+      "name" : "copilot-worktrees",
+      "unreadable_items" : 0
+    }
+  ],
+  "unreadable_items" : 0
+}

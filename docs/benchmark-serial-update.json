@@ -1,0 +1,36 @@
+{
+  "allocated_bytes" : 7542759424,
+  "cache_note" : "Existing tree; first pass has uncontrolled cache state, subsequent passes use the OS metadata cache.",
+  "cpu_system_seconds" : 2.6235520000000001,
+  "cpu_user_seconds" : 0.30926100000000001,
+  "date" : "2026-10-05T10:29:22Z",
+  "disk_available_bytes" : 9668521984,
+  "disk_total_bytes" : 494384795648,
+  "disk_used_bytes" : 484716273664,
+  "drawn_tiles" : 1200,
+  "entries" : 100101,
+  "files" : 100000,
+  "first_scan_ms" : 2267.8547079999998,
+  "layout" : {
+    "median_ms" : 3.1229170000000002,
+    "min_ms" : 1.208583,
+    "p95_ms" : 6.1566660000000004
+  },
+  "logical_bytes" : 199974459938,
+  "memory_note" : "Process RSS includes Swift runtime and linked UI frameworks. Peak includes baseline and benchmark data.",
+  "native_peak_rss_bytes" : 45989888,
+  "native_scan" : {
+    "median_ms" : 419.63970799999998,
+    "min_ms" : 412.23404199999999,
+    "p95_ms" : 440.34091699999999
+  },
+  "os" : "Version 26.5.2 (Build 25F84)",
+  "parallelism" : 1,
+  "path" : "\/private\/var\/folders\/bh\/wvzch9rj7r397hvsn5h8x8v80000gn\/T\/spacetree-bench-B47943EB-A101-4B5F-8F24-701C6D1D9ACF",
+  "peak_rss_bytes" : 45989888,
+  "physical_memory_bytes" : 17179869184,
+  "processors" : 10,
+  "runs" : 5,
+  "snapshot_rss_bytes" : 23609344,
+  "unreadable_items" : 0
+}

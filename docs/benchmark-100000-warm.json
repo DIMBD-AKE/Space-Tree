@@ -1,0 +1,36 @@
+{
+  "cache_note" : "First pass follows fixture creation; warm passes use OS metadata cache. Not a cold disk benchmark.",
+  "cpu_system_seconds" : 4.2254360000000002,
+  "cpu_user_seconds" : 1.845804,
+  "date" : "2026-10-05T09:32:18Z",
+  "drawn_tiles" : 1200,
+  "entries" : 100101,
+  "files" : 100000,
+  "first_scan_ms" : 1768.963708,
+  "foundation_scan" : {
+    "median_ms" : 734.59587499999998,
+    "min_ms" : 627.71312499999999,
+    "p95_ms" : 758.03700000000003
+  },
+  "layout" : {
+    "median_ms" : 1.137459,
+    "min_ms" : 0.93329200000000001,
+    "p95_ms" : 2.6168330000000002
+  },
+  "logical_bytes" : 199974459940,
+  "memory_note" : "Process RSS includes Swift runtime and linked UI frameworks. Peak includes baseline and benchmark data.",
+  "native_peak_rss_bytes" : 45285376,
+  "native_scan" : {
+    "median_ms" : 379.109959,
+    "min_ms" : 357.42037499999998,
+    "p95_ms" : 394.53979199999998
+  },
+  "os" : "Version 26.5.2 (Build 25F84)",
+  "path" : "\/private\/var\/folders\/bh\/wvzch9rj7r397hvsn5h8x8v80000gn\/T\/spacetree-bench-8B4EF125-7326-4E49-84F3-49B02163F1B2",
+  "peak_rss_bytes" : 140181504,
+  "physical_memory_bytes" : 17179869184,
+  "processors" : 10,
+  "runs" : 5,
+  "scan_speedup" : 1.9376855119756957,
+  "snapshot_rss_bytes" : 24199168
+}

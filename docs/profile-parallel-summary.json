@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-05",
+  "path": "/Applications/Xcode.app",
+  "tool": "macOS sample",
+  "duration_seconds": 5,
+  "interval_milliseconds": 1,
+  "scan_workers": 4,
+  "leaf_hotspots": [
+    {
+      "symbol": "__psynch_cvwait",
+      "samples": 12034
+    },
+    {
+      "symbol": "getattrlistbulk",
+      "samples": 3305
+    },
+    {
+      "symbol": "__open_nocancel",
+      "samples": 1009
+    },
+    {
+      "symbol": "fstatat",
+      "samples": 95
+    },
+    {
+      "symbol": "__workq_kernreturn",
+      "samples": 66
+    },
+    {
+      "symbol": "__close_nocancel",
+      "samples": 35
+    },
+    {
+      "symbol": "_xzm_xzone_malloc_tiny",
+      "samples": 11
+    },
+    {
+      "symbol": "swift_release",
+      "samples": 11
+    },
+    {
+      "symbol": "_platform_memmove",
+      "samples": 10
+    },
+    {
+      "symbol": "swift_retain",
+      "samples": 9
+    },
+    {
+      "symbol": "_xzm_xzone_malloc_freelist_outlined",
+      "samples": 8
+    },
+    {
+      "symbol": "_xzm_free",
+      "samples": 7
+    }
+  ],
+  "note": "Thread stack observations include blocked workers; counts are neither CPU-use percentages nor wall-clock percentages. Traced timings are excluded from benchmarks. Instruments launch capture did not reach app code and was rejected."
+}

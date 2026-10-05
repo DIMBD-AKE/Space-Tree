@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-05T10:43:08Z",
+  "total_bytes": 494384795648,
+  "used_bytes": 456146702336,
+  "available_bytes": 38238093312,
+  "volumes": [
+    {
+      "name": "Macintosh HD",
+      "used_bytes": 12571635712
+    },
+    {
+      "name": "Preboot",
+      "used_bytes": 10732625920
+    },
+    {
+      "name": "Recovery",
+      "used_bytes": 2519490560
+    },
+    {
+      "name": "Update",
+      "used_bytes": 3092480
+    },
+    {
+      "name": "Data",
+      "used_bytes": 418347732992
+    },
+    {
+      "name": "VM",
+      "used_bytes": 11811758080
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "cache_note" : "Existing tree; first pass has uncontrolled cache state, subsequent passes use the OS metadata cache.",
+  "cpu_system_seconds" : 6.3011929999999996,
+  "cpu_user_seconds" : 0.71423899999999996,
+  "date" : "2026-10-05T09:47:49Z",
+  "drawn_tiles" : 1200,
+  "entries" : 156994,
+  "files" : 130198,
+  "first_scan_ms" : 3069.826125,
+  "layout" : {
+    "median_ms" : 5.7995000000000001,
+    "min_ms" : 2.14425,
+    "p95_ms" : 8.0502079999999996
+  },
+  "logical_bytes" : 9450863873,
+  "memory_note" : "Process RSS includes Swift runtime and linked UI frameworks. Peak includes baseline and benchmark data.",
+  "native_peak_rss_bytes" : 84557824,
+  "native_scan" : {
+    "median_ms" : 2405.278542,
+    "min_ms" : 2189.6331249999998,
+    "p95_ms" : 2691.647125
+  },
+  "os" : "Version 26.5.2 (Build 25F84)",
+  "path" : "\/Applications\/Xcode.app",
+  "peak_rss_bytes" : 84557824,
+  "physical_memory_bytes" : 17179869184,
+  "processors" : 10,
+  "runs" : 5,
+  "snapshot_rss_bytes" : 40370176
+}

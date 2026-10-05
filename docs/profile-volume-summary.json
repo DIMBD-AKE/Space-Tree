@@ -1,0 +1,199 @@
+{
+  "before_gui": {
+    "tool": "macOS sample",
+    "duration_seconds": 5,
+    "leaf_hotspots": [
+      {
+        "symbol": "__psynch_cvwait",
+        "samples": 11859
+      },
+      {
+        "symbol": "__workq_kernreturn",
+        "samples": 11856
+      },
+      {
+        "symbol": "mach_msg2_trap",
+        "samples": 7786
+      },
+      {
+        "symbol": "getattrlistbulk",
+        "samples": 3802
+      },
+      {
+        "symbol": "specialized _ArrayBuffer._consumeAndCreateNew(bufferIsUnique:minimumCapacity:growForAppend:)",
+        "samples": 65
+      },
+      {
+        "symbol": "__open_nocancel",
+        "samples": 50
+      },
+      {
+        "symbol": "fstatat",
+        "samples": 13
+      },
+      {
+        "symbol": "<deduplicated_symbol>",
+        "samples": 7
+      }
+    ],
+    "source": ".build/volume-before-sample.txt"
+  },
+  "rejected_snapshot_implementation": {
+    "tool": "macOS sample",
+    "duration_seconds": 5,
+    "leaf_hotspots": [
+      {
+        "symbol": "__psynch_mutexwait",
+        "samples": 12356
+      },
+      {
+        "symbol": "lstat",
+        "samples": 1830
+      },
+      {
+        "symbol": "specialized UnsafeBufferPointer._decomposed<A>(_:as:into:nullTerminated:)",
+        "samples": 218
+      },
+      {
+        "symbol": "specialized Sequence<>.elementsEqual<A>(_:)",
+        "samples": 112
+      },
+      {
+        "symbol": "specialized static RFC3986Parser.validate<A>(buffer:component:percentEncodingAllowed:)",
+        "samples": 111
+      },
+      {
+        "symbol": "swift_release",
+        "samples": 89
+      },
+      {
+        "symbol": "_xzm_xzone_malloc_tiny",
+        "samples": 79
+      },
+      {
+        "symbol": "_xzm_free",
+        "samples": 78
+      },
+      {
+        "symbol": "swift_retain",
+        "samples": 76
+      },
+      {
+        "symbol": "Hasher.combine(bytes:)",
+        "samples": 68
+      }
+    ],
+    "source": ".build/volume-streaming-sample.txt"
+  },
+  "after_gui_utility": {
+    "tool": "macOS sample",
+    "duration_seconds": 5,
+    "leaf_hotspots": [
+      {
+        "symbol": "__workq_kernreturn",
+        "samples": 15559
+      },
+      {
+        "symbol": "getattrlistbulk",
+        "samples": 13772
+      },
+      {
+        "symbol": "mach_msg2_trap",
+        "samples": 7288
+      },
+      {
+        "symbol": "__psynch_cvwait",
+        "samples": 666
+      },
+      {
+        "symbol": "__open_nocancel",
+        "samples": 618
+      },
+      {
+        "symbol": "fstatat",
+        "samples": 133
+      },
+      {
+        "symbol": "__psynch_mutexwait",
+        "samples": 82
+      },
+      {
+        "symbol": "_platform_memmove",
+        "samples": 33
+      },
+      {
+        "symbol": "objc_msgSend",
+        "samples": 30
+      },
+      {
+        "symbol": "__close_nocancel",
+        "samples": 25
+      }
+    ],
+    "source": ".build/volume-final-gui-sample.txt"
+  },
+  "note": "Thread observations include blocked threads, not CPU percentages. The slow intermediate implementation was rejected after repeated Foundation URL inference and lock contention were found; final merge uses strings and performs no filesystem queries. Final full scans use userInitiated QoS; incremental tracking stays at utility QoS.",
+  "final_gui_tracking": {
+    "tool": "macOS sample",
+    "duration_seconds": 5,
+    "source": ".build/volume-priority-gui-sample.txt",
+    "leaf_hotspots": [
+      {
+        "symbol": "__workq_kernreturn",
+        "samples": 15758
+      },
+      {
+        "symbol": "__psynch_cvwait",
+        "samples": 8168
+      },
+      {
+        "symbol": "mach_msg2_trap",
+        "samples": 7793
+      },
+      {
+        "symbol": "getattrlistbulk",
+        "samples": 3974
+      },
+      {
+        "symbol": "getMethodNoSuper_nolock(objc_class*, objc_selector*)",
+        "samples": 71
+      },
+      {
+        "symbol": "__ulock_wait2",
+        "samples": 41
+      },
+      {
+        "symbol": "mach_msg2_trap",
+        "samples": 38
+      },
+      {
+        "symbol": "<deduplicated_symbol>",
+        "samples": 35
+      },
+      {
+        "symbol": "getMethodFromRelativeList(relative_list_list_t<method_list_t>*, objc_selector*)",
+        "samples": 35
+      },
+      {
+        "symbol": "_xzm_xzone_malloc_tiny",
+        "samples": 23
+      }
+    ],
+    "queue_observations": [
+      "4026 Thread_62702602   DispatchQueue_1: com.apple.main-thread  (serial)",
+      "2792 Thread_62702698   DispatchQueue_10: com.apple.root.utility-qos  (concurrent)",
+      "2724 Thread_62702647   DispatchQueue_10: com.apple.root.utility-qos  (concurrent)",
+      "2724 Thread_62702648   DispatchQueue_10: com.apple.root.utility-qos  (concurrent)",
+      "2724 Thread_62702649   DispatchQueue_10: com.apple.root.utility-qos  (concurrent)",
+      "1302 Thread_62702649   DispatchQueue_112: SpaceTree.scan  (serial)",
+      "118 Thread_62702648   DispatchQueue_746: com.apple.inputAnalytics.IATextInputActionsAnalytics  (serial)",
+      "39 Thread_62702648   DispatchQueue_750: com.apple.InputAnalytics.IAXPCClient.sync  (serial)",
+      "1 Thread_62702702   DispatchQueue_13: com.apple.root.default-qos  (concurrent)"
+    ],
+    "footprint": [
+      "Physical footprint:         814.3M",
+      "Physical footprint (peak):  947.3M"
+    ],
+    "phase": "Captured after the initial full scan; includes utility-priority automatic tracking."
+  }
+}

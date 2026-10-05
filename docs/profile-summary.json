@@ -1,0 +1,68 @@
+{
+  "all_cpu_samples": 8921,
+  "scan_cpu_samples": 8674,
+  "scan_leaf_hotspots": [
+    {
+      "symbol": "getattrlistbulk",
+      "samples": 8155,
+      "percent_of_scan_samples": 94.02
+    },
+    {
+      "symbol": "__open_nocancel",
+      "samples": 86,
+      "percent_of_scan_samples": 0.99
+    },
+    {
+      "symbol": "specialized protocol witness for Collection.formIndex(after:) in conformance UnsafeMutableBufferPointer<A>",
+      "samples": 40,
+      "percent_of_scan_samples": 0.46
+    },
+    {
+      "symbol": "fts_build",
+      "samples": 35,
+      "percent_of_scan_samples": 0.4
+    },
+    {
+      "symbol": "_xzm_xzone_malloc_tiny",
+      "samples": 30,
+      "percent_of_scan_samples": 0.35
+    },
+    {
+      "symbol": "_platform_memmove",
+      "samples": 22,
+      "percent_of_scan_samples": 0.25
+    },
+    {
+      "symbol": "swift_release",
+      "samples": 18,
+      "percent_of_scan_samples": 0.21
+    },
+    {
+      "symbol": "_xzm_free",
+      "samples": 14,
+      "percent_of_scan_samples": 0.16
+    },
+    {
+      "symbol": "specialized static String._uncheckedFromUTF8(_:isASCII:)",
+      "samples": 13,
+      "percent_of_scan_samples": 0.15
+    },
+    {
+      "symbol": "specialized UnsafeMutableBufferPointer.swapAt(_:_:)",
+      "samples": 12,
+      "percent_of_scan_samples": 0.14
+    },
+    {
+      "symbol": "specialized _merge<A>(low:mid:high:buffer:by:)",
+      "samples": 12,
+      "percent_of_scan_samples": 0.14
+    },
+    {
+      "symbol": "closure #1 in FileNode.init(name:isDirectory:isLink:logical:allocated:children:error:)",
+      "samples": 11,
+      "percent_of_scan_samples": 0.13
+    }
+  ],
+  "fts_inclusive_samples": 8389,
+  "note": "12-second Time Profiler capture on repeated 100k-file scans. CPU samples are not wall-clock percentages; traced timings are not benchmark results."
+}

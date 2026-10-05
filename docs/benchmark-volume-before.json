@@ -1,0 +1,169 @@
+{
+  "allocated_bytes" : 397638729728,
+  "cache_note" : "Existing tree; first pass has uncontrolled cache state, subsequent passes use the OS metadata cache.",
+  "date" : "2026-10-05T12:13:14Z",
+  "disk_available_bytes" : 34333405184,
+  "disk_total_bytes" : 494384795648,
+  "disk_used_bytes" : 460051390464,
+  "entries" : 3165390,
+  "excluded_volumes" : 5,
+  "files" : 2787412,
+  "first_scan_ms" : 84618.890750000006,
+  "logical_bytes" : 427175732039,
+  "memory_note" : "Process RSS includes Swift runtime and linked UI frameworks. Peak includes baseline and benchmark data.",
+  "native_scan" : {
+    "median_ms" : 84618.890750000006,
+    "min_ms" : 84618.890750000006,
+    "p95_ms" : 84618.890750000006
+  },
+  "os" : "Version 26.5.2 (Build 25F84)",
+  "parallelism" : 4,
+  "path" : "\/System\/Volumes\/Data",
+  "physical_memory_bytes" : 17179869184,
+  "processors" : 10,
+  "runs" : 1,
+  "snapshot_rss_bytes" : 195510272,
+  "top_level" : [
+    {
+      "allocated_bytes" : 289811841024,
+      "files" : 2185713,
+      "logical_bytes" : 304220917198,
+      "name" : "Users",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 47443660800,
+      "files" : 317832,
+      "logical_bytes" : 52265959584,
+      "name" : "Applications",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 31577501696,
+      "files" : 20179,
+      "logical_bytes" : 31601454993,
+      "name" : "System",
+      "unreadable_items" : 5
+    },
+    {
+      "allocated_bytes" : 15272869888,
+      "files" : 95177,
+      "logical_bytes" : 18542238753,
+      "name" : "Library",
+      "unreadable_items" : 12
+    },
+    {
+      "allocated_bytes" : 7277535232,
+      "files" : 36212,
+      "logical_bytes" : 14601979804,
+      "name" : "private",
+      "unreadable_items" : 196
+    },
+    {
+      "allocated_bytes" : 4174782464,
+      "files" : 111323,
+      "logical_bytes" : 3907202265,
+      "name" : "opt",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 2074075136,
+      "files" : 20970,
+      "logical_bytes" : 2029525958,
+      "name" : "usr",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 5169152,
+      "files" : 3,
+      "logical_bytes" : 5161873,
+      "name" : ".PreviousSystemInformation",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 798720,
+      "files" : 1,
+      "logical_bytes" : 796975,
+      "name" : "MobileSoftwareUpdate",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 495616,
+      "files" : 1,
+      "logical_bytes" : 494635,
+      "name" : ".com.apple.templatemigration.boot-install",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 1,
+      "logical_bytes" : 1,
+      "name" : "Volumes",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 0,
+      "logical_bytes" : 0,
+      "name" : ".DocumentRevisions-V100",
+      "unreadable_items" : 1
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 0,
+      "logical_bytes" : 0,
+      "name" : ".Spotlight-V100",
+      "unreadable_items" : 1
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 0,
+      "logical_bytes" : 0,
+      "name" : ".TemporaryItems",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 0,
+      "logical_bytes" : 0,
+      "name" : ".fseventsd",
+      "unreadable_items" : 1
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 0,
+      "logical_bytes" : 0,
+      "name" : "cores",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 0,
+      "logical_bytes" : 0,
+      "name" : "home",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 0,
+      "logical_bytes" : 0,
+      "name" : "mnt",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 0,
+      "logical_bytes" : 0,
+      "name" : "pkg",
+      "unreadable_items" : 0
+    },
+    {
+      "allocated_bytes" : 0,
+      "files" : 0,
+      "logical_bytes" : 0,
+      "name" : "sw",
+      "unreadable_items" : 0
+    }
+  ],
+  "unreadable_items" : 216
+}
