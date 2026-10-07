@@ -25,7 +25,7 @@ GitHub Actions를 사용하지 않습니다. Keychain의 Developer ID Applicatio
 SPACETREE_NOTARY_PROFILE=공증용-Keychain-프로필 bash scripts/build-release.sh
 ```
 
-Keychain 프로필 대신 `SPACETREE_NOTARY_KEY`에 API 키 파일 경로, `SPACETREE_NOTARY_KEY_ID`에 키 ID, 팀 API 키라면 `SPACETREE_NOTARY_ISSUER`에 Issuer ID를 지정할 수 있습니다. 키 파일과 자격 증명은 저장소에 넣지 마세요. 결과는 `dist/Space-Tree-1.0.0-universal.dmg`과 `dist/SHA256SUMS.txt`입니다.
+Keychain 프로필 대신 `SPACETREE_NOTARY_KEY`에 API 키 파일 경로, `SPACETREE_NOTARY_KEY_ID`에 키 ID, 팀 API 키라면 `SPACETREE_NOTARY_ISSUER`에 Issuer ID를 지정할 수 있습니다. 키 파일과 자격 증명은 저장소에 넣지 마세요. 결과는 `dist/Space-Tree-1.0.1-universal.dmg`과 `dist/SHA256SUMS.txt`입니다.
 
 ## 사용
 
@@ -36,7 +36,8 @@ Keychain 프로필 대신 `SPACETREE_NOTARY_KEY`에 API 키 파일 경로, `SPAC
 - 스캔 중지는 자동 추적도 멈춥니다. 새로 고침하면 전체를 재스캔하고 추적을 재개합니다.
 - 이름 검색은 현재 폴더의 항목을 검색합니다. 용량순 목록은 모든 항목을 유지합니다.
 - 기본 면적은 파일 크기입니다. 할당 크기 기준으로 전환할 수 있습니다.
-- 첫 분석과 전체 새로 고침이 끝나기 전에도 폴더를 탐색할 수 있습니다. 진행 중인 폴더의 내용과 용량을 약 0.5초 간격을 목표로 갱신합니다. 아직 합산 중인 용량은 `부분 결과`와 `…`, 대기 중인 폴더는 `분석 중`으로 표시합니다. 파일시스템 응답이 지연되면 갱신 간격도 길어질 수 있습니다.
+- 첫 분석이 끝나기 전에도 폴더를 탐색할 수 있습니다. 진행 중인 폴더의 내용과 용량을 약 0.5초 간격을 목표로 갱신합니다. 아직 합산 중인 용량은 `부분 결과`와 `…`, 대기 중인 폴더는 `분석 중`으로 표시합니다. 파일시스템 응답이 지연되면 갱신 간격도 길어질 수 있습니다.
+- 자동 갱신이나 전체 새로 고침 중에는 기존 트리맵과 탐색 위치, 선택 항목, 검색어를 유지합니다. 분석이 완료되면 새 결과로 교체하며, 진행 상황은 하단에 표시합니다.
 - Finder 버튼은 상단 경로 오른쪽에 있습니다. `디스크 전체 사용`은 OS가 보고한 사용량이며 선택 폴더의 합계와 구분합니다.
 
 처음 분석하기 전에 전체 디스크 접근 설정을 안내합니다. macOS 시스템 설정에서 Space Tree에 한 번 허용하고 필요하면 앱을 재실행하세요. 휴지통 접근 확인을 통과하면 다음 실행부터 안내를 생략합니다. 나중에는 탐색 메뉴의 `전체 디스크 접근 설정…`으로 다시 열 수 있습니다. 이 권한을 허용해도 다른 사용자의 접근 제한이나 시스템 보호는 유지됩니다.
