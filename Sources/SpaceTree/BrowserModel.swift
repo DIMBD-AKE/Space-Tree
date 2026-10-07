@@ -275,14 +275,15 @@ final class BrowserModel: ObservableObject {
                 if !full, let oldRoot {
                     return try FileScanner.refresh(oldRoot, at: url, paths: paths, token: token)
                 }
-                return try FileScanner.scan(url, token: token, partial: { snapshot in
+                // Stream the first scan; rescans keep the navigable snapshot until replacement is complete.
+                return try FileScanner.scan(url, token: token, partial: oldRoot == nil ? { snapshot in
                     DispatchQueue.main.async {
                         guard let self, self.generation == stamp, self.token === token, !token.isCancelled,
                               self.isScanning else { return }
                         self.root = snapshot
                         self.updateRows()
                     }
-                }) { count in
+                } : nil) { count in
                     DispatchQueue.main.async {
                         guard let self, self.generation == stamp, self.token === token, !token.isCancelled else { return }
                         self.scannedCount = max(self.scannedCount, count)

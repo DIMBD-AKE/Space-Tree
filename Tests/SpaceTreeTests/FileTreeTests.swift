@@ -128,7 +128,7 @@ final class FileTreeTests: XCTestCase {
     }
 
     @MainActor
-    func testFullReloadPublishesPartialTreeAgain() async throws {
+    func testFullRescansKeepCurrentTreeUntilCompletion() async throws {
         let fm = FileManager.default
         let folder = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try fm.createDirectory(at: folder.appendingPathComponent("a/deep"), withIntermediateDirectories: true)
@@ -141,17 +141,56 @@ final class FileTreeTests: XCTestCase {
             if let previousFolder { UserDefaults.standard.set(previousFolder, forKey: "lastFolder") }
             else { UserDefaults.standard.removeObject(forKey: "lastFolder") }
         }
-        model.open(folder)
-        try await eventually { model.root?.logicalBytes == 3 && !model.isScanning }
-        var sawPartial = false
+        var snapshots: [FileNode] = []
         let subscription = model.$root.sink { node in
-            if node?.pendingFolderCount ?? 0 > 0 { sawPartial = true }
+            if let node { snapshots.append(node) }
         }
         defer { subscription.cancel() }
-        model.reload()
-        try await eventually { !model.isScanning && sawPartial }
-        XCTAssertEqual(model.root?.logicalBytes, 3)
-        XCTAssertEqual(model.root?.pendingFolderCount, 0)
+        model.open(folder)
+        try await eventually { model.root?.logicalBytes == 3 && !model.isScanning }
+        XCTAssertTrue(snapshots.contains { $0.pendingFolderCount > 0 }, "Initial scans still stream partial results")
+        model.enter(model.root!.children[0])
+        model.enter(model.currentNode!.children[0])
+        model.selectedName = "file"
+        model.query = "file"
+        try await eventually { model.rows.map(\.name) == ["file"] }
+
+        // Exercise manual reload, event overflow, and dropped daemon events with the same deep folder open.
+        for mode in 0..<3 {
+            model.cancelScan() // Isolate injected batches from real FSEvents.
+            snapshots.removeAll()
+            let previous = model.root
+            let updatedAt = model.updatedAt
+            let size = 5 + mode
+            try Data(repeating: 1, count: size).write(to: folder.appendingPathComponent("a/deep/file"))
+            var sawScan = false
+            let scanning = model.$isScanning.dropFirst().sink { active in
+                if active {
+                    sawScan = true
+                    XCTAssertTrue(model.root === previous)
+                    XCTAssertEqual(model.currentNode?.logicalBytes, previous?.logicalBytes)
+                    XCTAssertEqual(model.rows.map(\.name), ["file"])
+                }
+            }
+            defer { scanning.cancel() }
+            switch mode {
+            case 0: model.reload()
+            case 1: model.receive((0..<4097).map {
+                FileChange(path: model.rootURL!.appendingPathComponent("changed-\($0)").path, flags: 0)
+            })
+            default: model.receive([FileChange(path: model.rootURL!.path,
+                flags: UInt32(kFSEventStreamEventFlagKernelDropped))])
+            }
+            try await eventually { model.updatedAt != updatedAt && !model.isScanning }
+            XCTAssertTrue(sawScan)
+            XCTAssertEqual(snapshots.count, 1, "Existing results must only be replaced by the completed tree")
+            XCTAssertTrue(snapshots.allSatisfy { $0.pendingFolderCount == 0 && $0.node(at: ["a", "deep"][...]) != nil })
+            XCTAssertEqual(model.currentNode?.logicalBytes, Int64(size))
+            XCTAssertEqual(model.components, ["a", "deep"])
+            XCTAssertEqual(model.selectedName, "file")
+            XCTAssertEqual(model.query, "file")
+            try await eventually { model.rows.first?.logicalBytes == Int64(size) }
+        }
     }
 
     @MainActor
