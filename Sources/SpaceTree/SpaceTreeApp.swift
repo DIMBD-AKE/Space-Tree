@@ -147,33 +147,43 @@ struct BrowserView: View {
     }
 
     private func stats(_ node: FileNode) -> some View {
-        HStack(alignment: .center, spacing: 32) {
+        HStack(alignment: .center, spacing: 10) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(model.metric.rawValue + (node.pendingFolderCount > 0 ? " · 부분 결과" : ""))
                     .font(.system(size: 10, weight: .medium)).foregroundStyle(Theme.muted)
-                Text(formatBytes(node.bytes(model.metric))).font(.system(size: 36, weight: .medium, design: .rounded)).tracking(-1)
+                Text(formatBytes(node.bytes(model.metric))).font(.system(size: 30, weight: .medium, design: .rounded)).tracking(-1)
+                    .fixedSize(horizontal: true, vertical: false)
             }
             Rectangle().fill(Theme.line).frame(width: 1, height: 46)
-            VStack(alignment: .leading, spacing: 7) {
-                Text("파일").font(.system(size: 10)).foregroundStyle(Theme.muted)
-                Text(node.fileCount.formatted()).font(.system(size: 22, weight: .medium, design: .rounded))
-            }
-            VStack(alignment: .leading, spacing: 7) {
-                Text("하위 폴더").font(.system(size: 10)).foregroundStyle(Theme.muted)
-                Text(max(0, node.folderCount - 1).formatted()).font(.system(size: 22, weight: .medium, design: .rounded))
-            }
+            statCard("파일", value: node.fileCount.formatted())
+            statCard("하위 폴더", value: max(0, node.folderCount - 1).formatted())
+            let unknown = node.recovery.unknownFiles + node.recovery.privateUnknownFiles + node.unreadableCount
+            statCard(node.pendingFolderCount > 0 ? "폴더 회수 · 분석 중" : "폴더 회수 대상",
+                     value: formatBytes(node.recovery.allocatedBytes),
+                     detail: "단독 \(formatBytes(node.recovery.privateBytes))" + (node.recovery.privateUnknownFiles > 0 ? " 이상" : ""), accent: true)
+                .help("이 폴더의 회수 대상 \(node.recovery.fileCount.formatted())개 파일 · \(unknown.formatted())개 항목 확인 불가. 회수 대상으로 확인된 파일의 할당량이며, 디스크 전체 회수 예상과 별개입니다. 단독 회수 예상은 다른 파일·스냅샷과 공유하지 않는 블록만 합산합니다. 여러 공유 파일을 함께 삭제하면 더 많은 공간이 돌아올 수 있습니다.")
             if let space = model.diskSpace {
-                VStack(alignment: .leading, spacing: 7) {
-                    Text("디스크 전체 사용").font(.system(size: 10)).foregroundStyle(Theme.muted)
-                    Text(formatBytes(space.used)).font(.system(size: 22, weight: .medium, design: .rounded))
-                }.help("총 \(formatBytes(space.total)) · 여유 \(formatBytes(space.available)). 선택 폴더의 합계와 별개이며 APFS의 공유 공간, 다른 볼륨과 접근 불가 영역을 포함합니다.")
+                statCard("디스크 전체 사용", value: formatBytes(space.used))
+                    .help("현재 비어 있는 공간을 제외한 전체 사용량입니다. 총 \(formatBytes(space.total)) · 빈 공간 \(formatBytes(space.available)). 다른 볼륨과 접근 불가 영역을 포함합니다.")
+                statCard("macOS 사용 · 추정", value: space.estimatedUsed.map(formatBytes) ?? "확인 불가")
+                    .help("macOS가 회수 예상 공간을 여유로 취급하는 기준의 사용량입니다. 시스템 설정의 표시와 시점·계산 기준에 따라 다를 수 있습니다.")
+                statCard("디스크 회수 예상", value: space.reclaimableEstimate.map(formatBytes) ?? "확인 불가")
+                    .help("macOS가 비필수·캐시 자원 등을 정리해 추가로 확보할 수 있다고 추정한 공간입니다. 현재 폴더의 회수 대상 합계와 다르며 모두 특정 경로에 배분할 수는 없습니다.")
             }
-            Spacer()
-            Picker("면적 기준", selection: $model.metric) {
-                ForEach(SizeMetric.allCases, id: \.self) { Text($0.rawValue).tag($0) }
-            }.pickerStyle(.segmented).frame(width: 200)
-                .help("할당 크기는 APFS 공유 블록과 스냅샷의 실제 회수 가능 공간과 다를 수 있습니다.")
-        }.padding(.horizontal, 28).padding(.top, 10).padding(.bottom, 27)
+        }.padding(.horizontal, 28).padding(.top, 10).padding(.bottom, 20)
+    }
+
+    private func statCard(_ title: String, value: String, detail: String? = nil, accent: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title).font(.system(size: 9)).foregroundStyle(Theme.muted)
+            Text(value).font(.system(size: 16, weight: .medium, design: .rounded))
+                .foregroundStyle(accent ? Theme.accent : Color.white.opacity(0.85))
+            if let detail { Text(detail).font(.system(size: 9)).foregroundStyle(Theme.muted) }
+        }.lineLimit(1).minimumScaleFactor(0.8)
+            .padding(.horizontal, 10).padding(.vertical, 8)
+            .frame(maxWidth: .infinity, alignment: .leading).frame(height: 64, alignment: .topLeading)
+            .background(Theme.panel, in: RoundedRectangle(cornerRadius: 7))
+            .overlay(RoundedRectangle(cornerRadius: 7).stroke(Theme.line))
     }
 
     private func explorer(_ node: FileNode) -> some View {
@@ -182,7 +192,10 @@ struct BrowserView: View {
                 HStack {
                     Text("공간 지도").font(.system(size: 12, weight: .semibold))
                     Spacer()
-                    Text("폴더를 클릭해 더 깊이 탐색하세요").font(.system(size: 10)).foregroundStyle(Theme.muted)
+                    Picker("면적 기준", selection: $model.metric) {
+                        ForEach(SizeMetric.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    }.pickerStyle(.segmented).controlSize(.small).frame(width: 240)
+                        .help("폴더를 클릭하면 내부로 진입합니다. 회수 대상은 파일시스템이 회수 가능하다고 표시한 파일만 보여줍니다. 할당량은 공유 블록 때문에 실제 회수되는 공간과 다를 수 있습니다.")
                 }
                 if model.rows.contains(where: { $0.bytes(model.metric) > 0 }) {
                     TreemapView(nodes: model.rows, metric: model.metric, selected: model.selectedName,
@@ -190,8 +203,8 @@ struct BrowserView: View {
                 } else {
                     VStack(spacing: 12) {
                         Image(systemName: node.isPendingScan ? "hourglass" : (model.query.isEmpty ? "folder" : "magnifyingglass")).font(.system(size: 30))
-                        Text(node.isPendingScan ? "이 폴더를 분석하고 있습니다" : (model.query.isEmpty ? "표시할 용량이 없습니다" : "일치하는 항목이 없습니다"))
-                        Text(node.isPendingScan ? "분석이 끝난 폴더는 바로 탐색할 수 있습니다." : "빈 파일과 폴더도 오른쪽 목록에서 탐색할 수 있습니다.").font(.system(size: 11))
+                        Text(node.isPendingScan ? "이 폴더를 분석하고 있습니다" : (model.metric == .purgeable && !model.rows.isEmpty ? "회수 대상의 할당량이 0입니다" : (model.metric == .purgeable && model.query.isEmpty ? "확인된 회수 대상이 없습니다" : (model.query.isEmpty ? "표시할 용량이 없습니다" : "일치하는 항목이 없습니다"))))
+                        Text(node.isPendingScan ? "분석이 끝난 폴더는 바로 탐색할 수 있습니다." : (model.metric == .purgeable && model.rows.isEmpty ? "디스크 전체 회수 예상치에는 여기에 표시되지 않는 공간도 포함됩니다." : "빈 파일과 폴더도 오른쪽 목록에서 탐색할 수 있습니다.")).font(.system(size: 11))
                     }.foregroundStyle(Theme.muted).frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 HStack(spacing: 14) {

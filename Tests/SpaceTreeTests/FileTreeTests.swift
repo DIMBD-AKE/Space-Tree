@@ -1,8 +1,99 @@
 import XCTest
 import Combine
+import SwiftUI
 @testable import SpaceTree
 
 final class FileTreeTests: XCTestCase {
+    func testRecoveryAggregationAndDiskEstimates() {
+        let marked = FileNode(name: "cache", allocated: 4096,
+                              recovery: FileRecovery(allocated: 4096, privateBytes: 2048, files: 1))
+        let unknown = FileNode(name: "unknown", recovery: .unknown)
+        let nested = FileNode(name: "nested", isDirectory: true, children: [marked, unknown])
+        let root = FileNode(name: "root", isDirectory: true, children: [nested])
+        XCTAssertEqual(root.bytes(.purgeable), 4096)
+        XCTAssertEqual(root.recovery.privateBytes, 2048)
+        XCTAssertEqual(root.recovery.fileCount, 1)
+        XCTAssertEqual(root.recovery.unknownFiles, 1)
+        let replaced = root.replacing(["nested"][...], with: FileNode(name: "nested", isDirectory: true))
+        XCTAssertEqual(replaced.recovery.fileCount, 0)
+        XCTAssertEqual(replaced.recovery.unknownFiles, 0)
+        let disk = DiskSpace(total: 500, available: 70, importantAvailable: 240)
+        XCTAssertEqual(disk.used, 430)
+        XCTAssertEqual(disk.reclaimableEstimate, 170)
+        XCTAssertEqual(disk.estimatedUsed, 260)
+        XCTAssertNil(DiskSpace(total: 500, available: 70).estimatedUsed)
+        XCTAssertNil(DiskSpace(total: 500, available: 70, importantAvailable: -1).estimatedUsed)
+        XCTAssertEqual(DiskSpace(total: 500, available: 70, importantAvailable: 20).reclaimableEstimate, 0)
+        XCTAssertEqual(DiskSpace(total: 500, available: 70, importantAvailable: 600).estimatedUsed, 0)
+    }
+
+    @MainActor
+    func testNativePurgeableFilesNavigationAndLiveRefresh() async throws {
+        let fm = FileManager.default
+        let root = fm.temporaryDirectory.appendingPathComponent("spacetree-recovery-\(UUID().uuidString)")
+        let folder = root.appendingPathComponent("nested")
+        try fm.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: root) }
+        let cache = folder.appendingPathComponent("cache")
+        try Data(repeating: 0x53, count: 65_536).write(to: cache)
+        try Data([1, 2, 3]).write(to: root.appendingPathComponent("ordinary"))
+        func mark(_ verb: String) throws {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util")
+            process.arguments = ["-m", verb, cache.path]
+            process.standardOutput = FileHandle.nullDevice
+            process.standardError = FileHandle.nullDevice
+            try process.run()
+            process.waitUntilExit()
+            guard process.terminationStatus == 0 else { throw XCTSkip("Cannot mark the owned temporary fixture purgeable") }
+        }
+        try mark("-low")
+        XCTAssertEqual(try cache.resourceValues(forKeys: [.isPurgeableKey]).isPurgeable, true)
+        let serial = try FileScanner.scan(root, parallelism: 1).root
+        let parallel = try FileScanner.scan(root).root
+        XCTAssertEqual(serial.recovery.fileCount, 1)
+        XCTAssertEqual(serial.recovery.unknownFiles, 0)
+        XCTAssertEqual(serial.recovery.allocatedBytes, serial.node(at: ["nested", "cache"][...])!.allocatedBytes)
+        XCTAssertGreaterThan(serial.recovery.allocatedBytes, 0)
+        XCTAssertEqual(parallel.recovery.allocatedBytes, serial.recovery.allocatedBytes)
+        XCTAssertEqual(parallel.recovery.privateBytes, serial.recovery.privateBytes)
+        XCTAssertEqual(parallel.recovery.privateUnknownFiles, 0)
+        XCTAssertGreaterThan(serial.recovery.privateBytes, 0)
+
+        // Hard links are visible paths, but deleting one cannot release the inode's blocks.
+        try fm.linkItem(at: cache, to: root.appendingPathComponent("alias"))
+        let linked = try FileScanner.scan(root).root
+        XCTAssertEqual(linked.recovery.fileCount, 2)
+        XCTAssertEqual(linked.recovery.privateBytes, 0)
+
+        let model = BrowserModel()
+        defer { model.shutdown() }
+        model.open(root)
+        try await eventually { model.root?.recovery.fileCount == 2 && !model.isScanning }
+        model.metric = .purgeable
+        try await eventually { Set(model.rows.map(\.name)) == ["nested", "alias"] }
+        if let snapshotPath = ProcessInfo.processInfo.environment["SPACETREE_UI_SNAPSHOT"] {
+            // Render a test-owned view offscreen; no interaction with the user's app/window.
+            _ = NSApplication.shared
+            let view = NSHostingView(rootView: BrowserView(model: model).preferredColorScheme(.dark))
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 900, height: 600),
+                                  styleMask: .borderless, backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false
+            window.contentView = view
+            view.layoutSubtreeIfNeeded()
+            let bitmap = try XCTUnwrap(view.bitmapImageRepForCachingDisplay(in: view.bounds))
+            view.cacheDisplay(in: view.bounds, to: bitmap)
+            try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: URL(fileURLWithPath: snapshotPath))
+            window.close()
+        }
+        model.enter(model.rows.first { $0.name == "nested" }!)
+        try await eventually { model.rows.map(\.name) == ["cache"] }
+        try mark("-clear")
+        try await eventually { model.root?.recovery.fileCount == 0 && !model.isScanning }
+        try await eventually { model.rows.isEmpty }
+        XCTAssertEqual(model.components, ["nested"])
+    }
+
     func testRefreshContinuesPastPreviouslyUnreadableDirectory() throws {
         let fm = FileManager.default
         let root = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)

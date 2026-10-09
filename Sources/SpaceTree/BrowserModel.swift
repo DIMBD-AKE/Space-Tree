@@ -4,12 +4,22 @@ import Combine
 struct DiskSpace {
     let total: Int64
     let available: Int64
+    var importantAvailable: Int64? = nil
     var used: Int64 { max(0, total - available) }
+    var reclaimableEstimate: Int64? {
+        guard let importantAvailable, importantAvailable >= 0 else { return nil }
+        return max(0, min(total, importantAvailable) - available)
+    }
+    var estimatedUsed: Int64? { reclaimableEstimate.map { max(0, used - $0) } }
     static func read(_ url: URL) -> DiskSpace? {
         var info = statfs()
         guard statfs(url.path, &info) == 0 else { return nil }
+        var uncachedURL = url
+        uncachedURL.removeCachedResourceValue(forKey: .volumeAvailableCapacityForImportantUsageKey)
+        let resources = try? uncachedURL.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
         return DiskSpace(total: Int64(info.f_blocks) * Int64(info.f_bsize),
-                         available: Int64(info.f_bavail) * Int64(info.f_bsize))
+                         available: Int64(info.f_bavail) * Int64(info.f_bsize),
+                         importantAvailable: resources?.volumeAvailableCapacityForImportantUsage)
     }
 }
 
@@ -186,8 +196,9 @@ final class BrowserModel: ObservableObject {
         if query.isEmpty && metric == .logical { rows = children; return }
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             var nodes = query.isEmpty ? children : children.filter { $0.name.localizedStandardContains(query) }
-            if metric == .allocated {
-                nodes.sort { $0.allocatedBytes == $1.allocatedBytes ? $0.name < $1.name : $0.allocatedBytes > $1.allocatedBytes }
+            if metric == .purgeable { nodes.removeAll { $0.recovery.fileCount == 0 } }
+            if metric != .logical {
+                nodes.sort { $0.bytes(metric) == $1.bytes(metric) ? $0.name < $1.name : $0.bytes(metric) > $1.bytes(metric) }
             }
             DispatchQueue.main.async {
                 guard let self, self.rowGeneration == stamp else { return }

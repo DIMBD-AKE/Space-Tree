@@ -80,7 +80,9 @@ final class TreemapCanvas: NSView {
             item.setAccessibilityParent(self)
             item.setAccessibilityRole(tile.node == nil ? .staticText : .button)
             item.setAccessibilityEnabled(tile.node != nil)
-            item.setAccessibilityLabel("\(tile.title), \(formatBytes(tile.bytes))")
+            item.setAccessibilityLabel("\(tile.title), \(formatBytes(tile.bytes))" + (tile.node.map {
+                $0.recovery.fileCount > 0 ? ", 회수 대상 \(formatBytes($0.recovery.allocatedBytes))" : ""
+            } ?? ""))
             item.setAccessibilityFrameInParentSpace(tile.rect)
             if let node = tile.node { item.action = { [weak self] in self?.activate?(node) } }
             return item
@@ -172,7 +174,9 @@ final class TreemapCanvas: NSView {
         let index = Int(bitPattern: data) - 1
         guard tiles.indices.contains(index) else { return "" }
         let tile = tiles[index]
-        return "\(tile.title)\n\(formatBytes(tile.bytes))" + (tile.node == nil ? "\n전체 항목은 오른쪽 목록에서 확인하세요." : "")
+        return "\(tile.title)\n\(formatBytes(tile.bytes))" + (tile.node.map {
+            "\n회수 대상 \(formatBytes($0.recovery.allocatedBytes)) · \($0.recovery.fileCount)개 파일\n단독 회수 예상 \(formatBytes($0.recovery.privateBytes))" + ($0.recovery.privateUnknownFiles > 0 ? " 이상" : "")
+        } ?? "\n전체 항목은 오른쪽 목록에서 확인하세요.")
     }
 }
 
@@ -276,7 +280,9 @@ struct FileListView: NSViewRepresentable {
                 cell.imageView?.image = NSImage(systemSymbolName: node.isLink ? "link" : category.icon, accessibilityDescription: category.rawValue)
                 cell.imageView?.contentTintColor = category.nsColor
             }
-            cell.toolTip = node.name + (node.ownError == 0 ? "" : " — 읽기 권한이 없습니다.")
+            cell.toolTip = node.name + "\n회수 대상 \(formatBytes(node.recovery.allocatedBytes)) · \(node.recovery.fileCount)개 파일\n단독 회수 예상 \(formatBytes(node.recovery.privateBytes))"
+                + (node.recovery.privateUnknownFiles > 0 ? " 이상" : "")
+                + (node.ownError == 0 ? "" : "\n읽기 권한이 없습니다.")
             return cell
         }
         private func makeCell(_ identifier: NSUserInterfaceItemIdentifier, isName: Bool) -> NSTableCellView {
