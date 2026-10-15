@@ -476,6 +476,38 @@ final class FileTreeTests: XCTestCase {
         XCTAssertNotNil(scan.root.node(at: ["Demo.app", "Contents", "file"][...]))
     }
 
+    @MainActor
+    func testTreemapAnimationRetargetsAndKeepsDrawingBudget() async throws {
+        let before = [TreeTile(node: FileNode(name: "a"), rect: CGRect(x: 0, y: 0, width: 80, height: 100), bytes: 80, groupedCount: 0),
+                      TreeTile(node: FileNode(name: "removed"), rect: CGRect(x: 80, y: 0, width: 20, height: 100), bytes: 20, groupedCount: 0)]
+        let after = [TreeTile(node: FileNode(name: "a"), rect: CGRect(x: 0, y: 0, width: 40, height: 100), bytes: 40, groupedCount: 0),
+                     TreeTile(node: FileNode(name: "new"), rect: CGRect(x: 40, y: 0, width: 60, height: 100), bytes: 60, groupedCount: 0)]
+        let pairs = TreemapLayout.transition(from: before, to: after)
+        let middle = pairs.map { TreemapLayout.interpolate($0, progress: 0.5) }
+        XCTAssertEqual(middle[0].rect.width, 60)
+        XCTAssertEqual(middle[0].bytes, 60)
+        XCTAssertEqual(middle[1].opacity, 0.5)
+        XCTAssertEqual(middle[2].opacity, 0.5)
+        let retargeted = TreemapLayout.transition(from: middle, to: before)
+        XCTAssertEqual(TreemapLayout.interpolate(retargeted[0], progress: 0).rect, middle[0].rect)
+        XCTAssertEqual(TreemapLayout.interpolate(retargeted[0], progress: 1).rect, before[0].rect)
+        let reordered = TreemapLayout.transition(from: before, to: before.reversed())
+        XCTAssertEqual(reordered[0].from.node?.name, "removed")
+        let maximum = TreeTile(node: FileNode(name: "max"), rect: .zero, bytes: Int64.max, groupedCount: 0)
+        XCTAssertEqual(TreemapLayout.interpolate((maximum, maximum), progress: 0.5).bytes, Int64.max)
+        let full = (0..<TreemapLayout.tileLimit).map { TreeTile(node: FileNode(name: "file-\($0)"), rect: .zero, bytes: 1, groupedCount: 0) }
+        XCTAssertEqual(TreemapLayout.transition(from: before, to: full).count, TreemapLayout.tileLimit)
+
+        var progress: [CGFloat] = []
+        let driver = TreemapAnimation(duration: 0.08, animationCurve: .easeInOut)
+        driver.animationBlockingMode = .nonblocking
+        driver.frameRate = 60
+        driver.step = { progress.append($0) }
+        driver.start()
+        try await eventually { progress.last == 1 && !driver.isAnimating }
+        XCTAssertTrue(progress.contains { $0 > 0 && $0 < 1 })
+    }
+
     func testTreemapAreaAndDrawingBudget() {
         let nodes = (1...10_000).map { FileNode(name: "file\($0)", logical: Int64($0)) }
             .sorted { $0.logicalBytes > $1.logicalBytes }

@@ -5,11 +5,40 @@ struct TreeTile {
     let rect: CGRect
     let bytes: Int64
     let groupedCount: Int
+    var opacity: CGFloat = 1
     var title: String { node?.name ?? "그 외 \(groupedCount.formatted())개" }
 }
 
 enum TreemapLayout {
     static let tileLimit = 1200
+
+    static func transition(from: [TreeTile], to: [TreeTile]) -> [(from: TreeTile, to: TreeTile)] {
+        let previous = Dictionary(uniqueKeysWithValues: from.map { ($0.node?.name ?? "\0", $0) })
+        let next = Set(to.map { $0.node?.name ?? "\0" })
+        func collapsed(_ tile: TreeTile) -> TreeTile {
+            TreeTile(node: tile.node, rect: CGRect(x: tile.rect.midX, y: tile.rect.midY, width: 0, height: 0),
+                     bytes: 0, groupedCount: tile.groupedCount, opacity: 0)
+        }
+        var pairs = to.map { tile in (from: previous[tile.node?.name ?? "\0"] ?? collapsed(tile), to: tile) }
+        // shortcut: retire only within the 1,200-cell budget; raise this only if profiling permits it.
+        for tile in from where !next.contains(tile.node?.name ?? "\0") && pairs.count < tileLimit {
+            pairs.append((from: tile, to: collapsed(tile)))
+        }
+        return pairs
+    }
+
+    static func interpolate(_ pair: (from: TreeTile, to: TreeTile), progress: CGFloat) -> TreeTile {
+        let t = min(1, max(0, progress))
+        if t == 1 { return pair.to }
+        func mix(_ a: CGFloat, _ b: CGFloat) -> CGFloat { a + (b - a) * t }
+        let a = pair.from.rect, b = pair.to.rect
+        let bytes = Double(pair.from.bytes) + (Double(pair.to.bytes) - Double(pair.from.bytes)) * Double(t)
+        return TreeTile(node: pair.to.node,
+                        rect: CGRect(x: mix(a.minX, b.minX), y: mix(a.minY, b.minY),
+                                     width: mix(a.width, b.width), height: mix(a.height, b.height)),
+                        bytes: bytes >= Double(Int64.max) ? Int64.max : max(0, Int64(bytes.rounded())),
+                        groupedCount: pair.to.groupedCount, opacity: mix(pair.from.opacity, pair.to.opacity))
+    }
 
     // Balanced binary partition uses prefix sums: O(n) preparation, O(k log n) layout.
     // ponytail: cap drawing at 1,200 cells; all entries remain in the virtualized file list.

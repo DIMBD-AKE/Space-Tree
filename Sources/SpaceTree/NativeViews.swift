@@ -30,6 +30,7 @@ extension FileCategory {
 
 struct TreemapView: NSViewRepresentable {
     let nodes: [FileNode]
+    let scope: URL?
     let metric: SizeMetric
     let selected: String?
     let activate: (FileNode) -> Void
@@ -39,7 +40,8 @@ struct TreemapView: NSViewRepresentable {
     func updateNSView(_ view: TreemapCanvas, context: Context) {
         view.activate = activate
         view.reveal = reveal
-        if metric != view.metric || nodes.count != view.nodes.count || zip(nodes, view.nodes).contains(where: { $0 !== $1 }) {
+        if scope != view.scope || metric != view.metric || nodes.count != view.nodes.count || zip(nodes, view.nodes).contains(where: { $0 !== $1 }) {
+            view.scope = scope
             view.nodes = nodes
             view.metric = metric
             view.needsLayout = true
@@ -50,6 +52,7 @@ struct TreemapView: NSViewRepresentable {
 
 final class TreemapCanvas: NSView {
     var nodes: [FileNode] = []
+    var scope: URL?
     var metric: SizeMetric = .logical
     var selected: String?
     var activate: ((FileNode) -> Void)?
@@ -57,6 +60,10 @@ final class TreemapCanvas: NSView {
     private var tiles: [TreeTile] = []
     private var hovered: Int?
     private var lastSize = CGSize.zero
+    private var lastScope: URL?
+    private var animation: TreemapAnimation?
+    private var targetTiles: [TreeTile] = []
+    private var actionableNodes: Set<ObjectIdentifier> = []
     override var isFlipped: Bool { true }
 
     override init(frame: NSRect) {
@@ -68,14 +75,19 @@ final class TreemapCanvas: NSView {
 
     override func layout() {
         super.layout()
-        tiles = TreemapLayout.layout(nodes, metric: metric, in: bounds.insetBy(dx: 1, dy: 1))
+        let next = TreemapLayout.layout(nodes, metric: metric, in: bounds.insetBy(dx: 1, dy: 1))
+        let animate = !tiles.isEmpty && scope == lastScope && bounds.size == lastSize
+            && window?.isVisible == true && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        animation?.stop()
+        animation = nil
+        let pairs = animate ? TreemapLayout.transition(from: tiles, to: next) : []
+        targetTiles = next
+        actionableNodes = Set(next.compactMap { $0.node.map(ObjectIdentifier.init) })
         hovered = nil
         lastSize = bounds.size
+        lastScope = scope
         removeAllToolTips()
-        for (index, tile) in tiles.enumerated() where tile.rect.width > 3 && tile.rect.height > 3 {
-            addToolTip(tile.rect, owner: self, userData: UnsafeMutableRawPointer(bitPattern: index + 1))
-        }
-        let elements = tiles.filter { $0.rect.width > 3 && $0.rect.height > 3 }.map { tile -> NSAccessibilityElement in
+        let elements = next.filter { $0.rect.width > 3 && $0.rect.height > 3 }.map { tile -> NSAccessibilityElement in
             let item = TileAccessibility()
             item.setAccessibilityParent(self)
             item.setAccessibilityRole(tile.node == nil ? .staticText : .button)
@@ -88,7 +100,46 @@ final class TreemapCanvas: NSView {
             return item
         }
         setAccessibilityChildren(elements)
+        if animate && pairs.contains(where: { $0.from.rect != $0.to.rect || $0.from.bytes != $0.to.bytes || $0.from.opacity != $0.to.opacity }) {
+            let driver = TreemapAnimation(duration: 0.25, animationCurve: .easeInOut)
+            driver.animationBlockingMode = .nonblocking
+            driver.frameRate = 60
+            driver.step = { [weak self] progress in
+                guard let self else { return }
+                if progress >= 1 || self.window?.isVisible != true || NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+                    if progress < 1 { self.animation?.stop() }
+                    self.animation = nil
+                    self.tiles = next
+                    self.hovered = nil
+                    self.installToolTips()
+                } else {
+                    self.tiles = pairs.map { TreemapLayout.interpolate($0, progress: progress) }
+                }
+                self.needsDisplay = true
+            }
+            animation = driver
+            driver.start()
+        } else {
+            tiles = next
+            installToolTips()
+        }
         needsDisplay = true
+    }
+
+    private func installToolTips() {
+        removeAllToolTips()
+        for (index, tile) in tiles.enumerated() where tile.rect.width > 3 && tile.rect.height > 3 {
+            addToolTip(tile.rect, owner: self, userData: UnsafeMutableRawPointer(bitPattern: index + 1))
+        }
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if window == nil {
+            animation?.stop()
+            animation = nil
+            tiles = targetTiles
+        }
     }
 
     override func setFrameSize(_ newSize: NSSize) {
@@ -108,6 +159,9 @@ final class TreemapCanvas: NSView {
         for (index, tile) in tiles.enumerated() where tile.rect.intersects(dirtyRect) {
             let rect = tile.rect.insetBy(dx: 2, dy: 2)
             guard rect.width >= 1, rect.height >= 1 else { continue }
+            NSGraphicsContext.saveGraphicsState()
+            defer { NSGraphicsContext.restoreGraphicsState() }
+            NSGraphicsContext.current?.cgContext.setAlpha(tile.opacity)
             let category = tile.node.map(FileCategory.of) ?? .other
             let color = category.nsColor
             let active = index == hovered || tile.node?.name == selected
@@ -142,7 +196,12 @@ final class TreemapCanvas: NSView {
         }
     }
 
-    private func tile(at point: NSPoint) -> Int? { tiles.firstIndex { $0.rect.contains(point) } }
+    private func tile(at point: NSPoint) -> Int? {
+        tiles.firstIndex { tile in
+            tile.opacity > 0.1 && tile.rect.contains(point)
+                && (tile.node.map { actionableNodes.contains(ObjectIdentifier($0)) } ?? true)
+        }
+    }
 
     override func mouseMoved(with event: NSEvent) {
         let next = tile(at: convert(event.locationInWindow, from: nil))
@@ -177,6 +236,17 @@ final class TreemapCanvas: NSView {
         return "\(tile.title)\n\(formatBytes(tile.bytes))" + (tile.node.map {
             "\n회수 대상 \(formatBytes($0.recovery.allocatedBytes)) · \($0.recovery.fileCount)개 파일\n단독 회수 예상 \(formatBytes($0.recovery.privateBytes))" + ($0.recovery.privateUnknownFiles > 0 ? " 이상" : "")
         } ?? "\n전체 항목은 오른쪽 목록에서 확인하세요.")
+    }
+}
+
+final class TreemapAnimation: NSAnimation {
+    var step: ((CGFloat) -> Void)?
+    override var currentProgress: NSAnimation.Progress {
+        get { super.currentProgress }
+        set {
+            super.currentProgress = newValue
+            step?(CGFloat(currentValue))
+        }
     }
 }
 

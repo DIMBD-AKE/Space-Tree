@@ -1,0 +1,61 @@
+{
+  "allocated_bytes" : 0,
+  "animation_frame_interpolation" : {
+    "median_ms" : 0.033167000000000002,
+    "min_ms" : 0.012458,
+    "p95_ms" : 0.033875000000000002
+  },
+  "cache_note" : "First pass follows fixture creation; warm passes use OS metadata cache. Not a cold disk benchmark.",
+  "cpu_system_seconds" : 0.40798800000000002,
+  "cpu_user_seconds" : 0.122408,
+  "date" : "2026-10-15T06:32:10Z",
+  "disk_available_bytes" : 47263080448,
+  "disk_estimated_used_bytes" : 441412254091,
+  "disk_reclaimable_estimate_bytes" : 5709461109,
+  "disk_total_bytes" : 494384795648,
+  "disk_used_bytes" : 447121715200,
+  "drawn_tiles" : 1200,
+  "entries" : 5101,
+  "files" : 5000,
+  "first_scan_ms" : 7.7794169999999996,
+  "foundation_scan" : {
+    "median_ms" : 23.922708,
+    "min_ms" : 23.440542000000001,
+    "p95_ms" : 25.106000000000002
+  },
+  "incremental_scan" : {
+    "median_ms" : 0.119292,
+    "min_ms" : 0.112875,
+    "p95_ms" : 0.22575000000000001
+  },
+  "incremental_speedup" : 70.757754082419623,
+  "incremental_visited" : 51,
+  "layout" : {
+    "median_ms" : 0.054959000000000001,
+    "min_ms" : 0.054542,
+    "p95_ms" : 0.074208999999999997
+  },
+  "logical_bytes" : 9908022500,
+  "memory_note" : "Process RSS includes Swift runtime and linked UI frameworks. Peak includes baseline and benchmark data.",
+  "native_peak_rss_bytes" : 21856256,
+  "native_scan" : {
+    "median_ms" : 8.4408340000000006,
+    "min_ms" : 7.9422079999999999,
+    "p95_ms" : 8.4613329999999998
+  },
+  "os" : "Version 26.5.2 (Build 25F84)",
+  "parallelism" : 4,
+  "path" : "\/var\/folders\/bh\/wvzch9rj7r397hvsn5h8x8v80000gn\/T\/spacetree-bench-FAB39456-8CC7-475E-970B-94F90EB93453",
+  "peak_rss_bytes" : 27017216,
+  "physical_memory_bytes" : 17179869184,
+  "processors" : 10,
+  "purgeable_allocated_bytes" : 0,
+  "purgeable_files" : 0,
+  "purgeable_private_bytes" : 0,
+  "purgeable_private_unknown_files" : 0,
+  "purgeable_unknown_files" : 0,
+  "runs" : 3,
+  "scan_speedup" : 2.8341640174418781,
+  "snapshot_rss_bytes" : 18546688,
+  "unreadable_items" : 0
+}

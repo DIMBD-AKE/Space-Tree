@@ -168,6 +168,22 @@ enum Benchmark {
         }
         report["layout"] = stats(layout)
         report["drawn_tiles"] = tileCount
+        let bounds = CGRect(x: 0, y: 0, width: 1000, height: 700)
+        let oldTiles = TreemapLayout.layout(files, metric: .logical, in: bounds)
+        var changed = Array(files.prefix(TreemapLayout.tileLimit))
+        if let first = changed.first { changed[0] = FileNode(name: first.name, logical: first.logicalBytes / 2) }
+        changed.sort { $0.logicalBytes > $1.logicalBytes }
+        let newTiles = TreemapLayout.layout(changed, metric: .logical, in: bounds)
+        let pairs = TreemapLayout.transition(from: oldTiles, to: newTiles)
+        var frames: [Double] = []
+        for frame in 0..<runs * 60 {
+            let (tiles, elapsed) = milliseconds {
+                pairs.map { TreemapLayout.interpolate($0, progress: CGFloat(frame % 16) / 15) }
+            }
+            precondition(tiles.count <= TreemapLayout.tileLimit)
+            frames.append(elapsed)
+        }
+        report["animation_frame_interpolation"] = stats(frames)
         var usage = rusage()
         getrusage(RUSAGE_SELF, &usage)
         report["peak_rss_bytes"] = usage.ru_maxrss

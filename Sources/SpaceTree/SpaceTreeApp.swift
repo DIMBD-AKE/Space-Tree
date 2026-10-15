@@ -66,6 +66,21 @@ private enum Theme {
     static let line = Color.white.opacity(0.075)
 }
 
+private struct ValueTransition: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let value: String
+
+    @ViewBuilder func body(content: Content) -> some View {
+        if #available(macOS 14, *) {
+            content.contentTransition(.numericText())
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: value)
+        } else {
+            content.contentTransition(.opacity)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: value)
+        }
+    }
+}
+
 struct BrowserView: View {
     @ObservedObject var model: BrowserModel
 
@@ -152,6 +167,7 @@ struct BrowserView: View {
                 Text(model.metric.rawValue + (node.pendingFolderCount > 0 ? " · 부분 결과" : ""))
                     .font(.system(size: 10, weight: .medium)).foregroundStyle(Theme.muted)
                 Text(formatBytes(node.bytes(model.metric))).font(.system(size: 30, weight: .medium, design: .rounded)).tracking(-1)
+                    .monospacedDigit().modifier(ValueTransition(value: formatBytes(node.bytes(model.metric))))
                     .fixedSize(horizontal: true, vertical: false)
             }
             Rectangle().fill(Theme.line).frame(width: 1, height: 46)
@@ -177,8 +193,9 @@ struct BrowserView: View {
         VStack(alignment: .leading, spacing: 3) {
             Text(title).font(.system(size: 9)).foregroundStyle(Theme.muted)
             Text(value).font(.system(size: 16, weight: .medium, design: .rounded))
+                .monospacedDigit().modifier(ValueTransition(value: value))
                 .foregroundStyle(accent ? Theme.accent : Color.white.opacity(0.85))
-            if let detail { Text(detail).font(.system(size: 9)).foregroundStyle(Theme.muted) }
+            if let detail { Text(detail).font(.system(size: 9)).monospacedDigit().modifier(ValueTransition(value: detail)).foregroundStyle(Theme.muted) }
         }.lineLimit(1).minimumScaleFactor(0.8)
             .padding(.horizontal, 10).padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading).frame(height: 64, alignment: .topLeading)
@@ -198,7 +215,7 @@ struct BrowserView: View {
                         .help("폴더를 클릭하면 내부로 진입합니다. 회수 대상은 파일시스템이 회수 가능하다고 표시한 파일만 보여줍니다. 할당량은 공유 블록 때문에 실제 회수되는 공간과 다를 수 있습니다.")
                 }
                 if model.rows.contains(where: { $0.bytes(model.metric) > 0 }) {
-                    TreemapView(nodes: model.rows, metric: model.metric, selected: model.selectedName,
+                    TreemapView(nodes: model.rows, scope: model.currentURL, metric: model.metric, selected: model.selectedName,
                         activate: model.enter, reveal: { model.reveal($0) })
                 } else {
                     VStack(spacing: 12) {

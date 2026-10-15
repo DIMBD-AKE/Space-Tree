@@ -25,7 +25,7 @@ GitHub Actions를 사용하지 않습니다. Keychain의 Developer ID Applicatio
 SPACETREE_NOTARY_PROFILE=공증용-Keychain-프로필 bash scripts/build-release.sh
 ```
 
-Keychain 프로필 대신 `SPACETREE_NOTARY_KEY`에 API 키 파일 경로, `SPACETREE_NOTARY_KEY_ID`에 키 ID, 팀 API 키라면 `SPACETREE_NOTARY_ISSUER`에 Issuer ID를 지정할 수 있습니다. 키 파일과 자격 증명은 저장소에 넣지 마세요. 결과는 `dist/Space-Tree-1.1.0-universal.dmg`과 `dist/SHA256SUMS.txt`입니다.
+Keychain 프로필 대신 `SPACETREE_NOTARY_KEY`에 API 키 파일 경로, `SPACETREE_NOTARY_KEY_ID`에 키 ID, 팀 API 키라면 `SPACETREE_NOTARY_ISSUER`에 Issuer ID를 지정할 수 있습니다. 키 파일과 자격 증명은 저장소에 넣지 마세요. 결과는 `dist/Space-Tree-1.1.1-universal.dmg`과 `dist/SHA256SUMS.txt`입니다.
 
 ## 사용
 
@@ -41,6 +41,7 @@ Keychain 프로필 대신 `SPACETREE_NOTARY_KEY`에 API 키 파일 경로, `SPAC
 - Finder 버튼은 상단 경로 오른쪽에 있습니다. 폴더별 `회수 대상`은 표시된 파일의 할당량이며 `단독 회수 예상`은 다른 파일·스냅샷과 공유하지 않는 블록의 합계입니다. 하드 링크의 다른 경로가 남아 있으면 단독 회수 예상에 포함하지 않습니다. 여러 공유 파일을 함께 삭제하면 더 많은 공간이 돌아올 수 있습니다.
 - `디스크 전체 사용`은 현재 빈 공간을 제외한 전체 사용량입니다. `macOS 사용량 · 추정`은 시스템이 회수 예상 공간을 여유로 취급하는 API 기준이며, `디스크 회수 예상`과 함께 표시합니다. 세 값은 현재 폴더의 합계와 구분합니다. 시스템 추정치 전체를 특정 폴더에 배분하거나 폴더 합계에서 임의로 빼지 않습니다. 조회가 지원되지 않으면 `확인 불가`로 표시합니다.
 - 파일·폴더 개수와 회수·디스크 용량은 한 줄의 작은 카드로 표시합니다. 자세한 설명과 확인 불가 항목 수는 카드에 마우스를 올려 확인하고, 면적 기준은 공간 지도 제목 옆에서 선택합니다.
+- 요약 숫자와 트리맵 변경은 약 0.25초 동안 부드럽게 전환합니다. 연속 갱신은 현재 표시 상태에서 이어가며, 폴더 이동·창 크기 변경은 즉시 반영합니다. macOS의 `동작 줄이기`를 켜면 애니메이션을 생략합니다. 숫자 전환은 macOS 14 이상에서 숫자 효과, macOS 13에서는 페이드를 사용합니다.
 
 처음 분석하기 전에 전체 디스크 접근 설정을 안내합니다. macOS 시스템 설정에서 Space Tree에 한 번 허용하고 필요하면 앱을 재실행하세요. 휴지통 접근 확인을 통과하면 다음 실행부터 안내를 생략합니다. 나중에는 탐색 메뉴의 `전체 디스크 접근 설정…`으로 다시 열 수 있습니다. 이 권한을 허용해도 다른 사용자의 접근 제한이나 시스템 보호는 유지됩니다.
 

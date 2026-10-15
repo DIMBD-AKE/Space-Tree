@@ -1,5 +1,22 @@
 # Space Tree 성능 검증
 
+## 갱신 애니메이션 — 2026-10-15
+
+요약 숫자는 macOS 14 이상에서 숫자 전환, macOS 13에서는 페이드를 사용합니다. 트리맵은 같은 폴더 안의 셀을 이름으로 대응시켜 위치·크기·표시 용량·투명도를 0.25초 동안 보간합니다. 갱신이 겹치면 현재 그려진 상태에서 새 목표로 이어갑니다. 초기 표시·폴더 전환·창 크기 변경에는 셀 보간을 적용하지 않습니다. macOS 동작 줄이기를 반영하고, 화면이 숨겨지거나 전환이 끝나면 애니메이션을 멈춥니다. 상시 타이머나 추가 파일 탐색은 없습니다.
+
+기존 1,200셀 그리기 제한을 전환 중에도 유지합니다. 상한에 도달한 상태에서는 예산을 넘는 삭제 셀의 퇴장 효과를 생략합니다. 사라지는 파일은 마우스 작업 대상에서 제외하고, 툴팁은 전환이 끝난 위치에 다시 설치합니다.
+
+Apple M4, 16 GiB RAM, macOS 26.5.2, 로컬 서명 Universal Release 앱에서 생성 파일 5,000개로 측정했습니다. 기존 벤치마크에 셀 보간 측정을 추가했으며 명령은 `SpaceTree --benchmark --files 5000 --runs 3`입니다.
+
+| 측정 | 중앙값 | p95 |
+| --- | ---: | ---: |
+| 1,200셀 프레임 보간 계산 | 0.033167 ms | 0.033875 ms |
+| 트리맵 배치 계산 | 0.054959 ms | 0.074209 ms |
+
+프레임 보간은 180회 측정했습니다. 이 수치는 보간 계산만 포함하며 AppKit 텍스트·도형 그리기, SwiftUI 숫자 전환, GPU 합성 비용은 포함하지 않습니다. 프레임률 보장으로 해석하지 않습니다. [측정 원본](benchmark-animation.json)
+
+테스트 17개 중 16개 통과, 시뮬레이터 볼륨이 필요한 1개는 환경 조건으로 생략했습니다. 중간 프레임의 위치·용량, 추가·삭제·정렬 변경, 전환 중 재갱신, 64비트 최대값과 셀 상한, 실제 NSAnimation 진행·종료를 검증했습니다. 900×600 오프스크린 렌더링을 확인했습니다. 로컬 앱과 DMG의 서명·공증·Gatekeeper 검증을 통과했으며, GitHub 재다운로드 검증은 사용자 요청에 따라 생략했습니다.
+
 ## 회수 공간 집계 — 2026-10-09
 
 폴더별 회수 대상은 파일시스템의 `EF_IS_PURGEABLE` 표시가 있는 파일의 할당량입니다. 단독 회수 예상은 해당 파일의 `ATTR_CMNEXT_PRIVATESIZE`만 더하며, 다른 하드 링크가 남는 파일은 0으로 취급합니다. 공유 파일을 함께 삭제했을 때의 추가 회수량까지 계산하지 않는 보수적 합계입니다. 디스크 전체 회수 예상은 Foundation의 `volumeAvailableCapacityForImportantUsage`와 현재 빈 공간의 차이이며, 특정 폴더에 배분하거나 폴더 합계에서 빼지 않습니다. 조회 실패·지원되지 않는 항목은 확인 불가로 표시합니다. [Apple 회수 대상 정의](https://developer.apple.com/documentation/foundation/urlresourcekey/ispurgeablekey), [Apple 중요 작업의 가용 공간 정의](https://developer.apple.com/documentation/foundation/urlresourcevalues/volumeavailablecapacityforimportantusage)
