@@ -3,95 +3,7 @@ import Darwin
 import os
 
 enum SizeMetric: String, CaseIterable {
-    case logical = "파일 크기", allocated = "할당 크기", purgeable = "회수 대상"
-}
-
-// Share the common zero/unknown results rather than allocating metadata for every file.
-final class FileRecovery: @unchecked Sendable {
-    static let none = FileRecovery()
-    static let unknown = FileRecovery(unknownFiles: 1)
-    let allocatedBytes: Int64
-    let privateBytes: Int64
-    let fileCount: Int
-    let unknownFiles: Int
-    let privateUnknownFiles: Int
-
-    init(allocated: Int64 = 0, privateBytes: Int64 = 0, files: Int = 0,
-         unknownFiles: Int = 0, privateUnknownFiles: Int = 0) {
-        allocatedBytes = max(0, allocated)
-        self.privateBytes = max(0, privateBytes)
-        fileCount = files
-        self.unknownFiles = unknownFiles
-        self.privateUnknownFiles = privateUnknownFiles
-    }
-}
-
-enum RecoveryMetadata {
-    enum State { case ordinary, purgeable, unknown }
-
-    // One bulk metadata stream per directory; no URL/resourceValues call per ordinary file.
-    static func directory(_ path: String, buffer: inout [UInt8], token: ScanToken) throws -> [UInt64: State]? {
-        let fd = Darwin.open(path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
-        guard fd >= 0 else { return nil }
-        defer { Darwin.close(fd) }
-        var attributes = attrlist()
-        attributes.bitmapcount = UInt16(ATTR_BIT_MAP_COUNT)
-        attributes.commonattr = UInt32(ATTR_CMN_RETURNED_ATTRS) | UInt32(ATTR_CMN_NAME | ATTR_CMN_ERROR | ATTR_CMN_FILEID)
-        attributes.forkattr = UInt32(ATTR_CMNEXT_EXT_FLAGS)
-        var states: [UInt64: State] = [:]
-        while true {
-            if token.isCancelled { throw ScanError.cancelled }
-            let count = buffer.withUnsafeMutableBytes {
-                getattrlistbulk(fd, &attributes, $0.baseAddress!, $0.count,
-                                UInt64(FSOPT_ATTR_CMN_EXTENDED | FSOPT_PACK_INVAL_ATTRS))
-            }
-            guard count >= 0 else { return nil }
-            if count == 0 { return states }
-            let valid = buffer.withUnsafeBytes { bytes -> Bool in
-                // FSOPT_PACK_INVAL_ATTRS keeps this 4-byte-aligned layout fixed:
-                // length, returned attributes, entry error, name reference, inode, extended flags.
-                var offset = 0
-                for _ in 0..<count {
-                    guard offset + 52 <= bytes.count else { return false }
-                    let length = Int(bytes.loadUnaligned(fromByteOffset: offset, as: UInt32.self))
-                    guard length >= 52, length <= bytes.count - offset else { return false }
-                    let returned = bytes.loadUnaligned(fromByteOffset: offset + 4, as: attribute_set_t.self)
-                    let error = bytes.loadUnaligned(fromByteOffset: offset + 24, as: UInt32.self)
-                    let inode = bytes.loadUnaligned(fromByteOffset: offset + 36, as: UInt64.self)
-                    let flags = bytes.loadUnaligned(fromByteOffset: offset + 44, as: UInt64.self)
-                    if returned.commonattr & UInt32(ATTR_CMN_FILEID) != 0 {
-                        states[inode] = error == 0 && returned.forkattr & UInt32(ATTR_CMNEXT_EXT_FLAGS) != 0
-                            ? (flags & UInt64(EF_IS_PURGEABLE) != 0 ? .purgeable : .ordinary) : .unknown
-                    }
-                    offset += length
-                }
-                return true
-            }
-            guard valid else { return nil }
-        }
-    }
-
-    // Query potentially expensive private extents only for confirmed purgeable files.
-    static func privateBytes(_ path: UnsafePointer<CChar>, inode: UInt64) -> Int64? {
-        var attributes = attrlist()
-        attributes.bitmapcount = UInt16(ATTR_BIT_MAP_COUNT)
-        attributes.commonattr = UInt32(ATTR_CMN_RETURNED_ATTRS) | UInt32(ATTR_CMN_FILEID)
-        attributes.forkattr = UInt32(ATTR_CMNEXT_PRIVATESIZE | ATTR_CMNEXT_EXT_FLAGS)
-        var buffer = [UInt8](repeating: 0, count: 48)
-        let result = buffer.withUnsafeMutableBytes {
-            getattrlist(path, &attributes, $0.baseAddress!, $0.count,
-                        UInt32(FSOPT_NOFOLLOW | FSOPT_ATTR_CMN_EXTENDED | FSOPT_PACK_INVAL_ATTRS))
-        }
-        guard result == 0 else { return nil }
-        return buffer.withUnsafeBytes { bytes in
-            let returned = bytes.loadUnaligned(fromByteOffset: 4, as: attribute_set_t.self)
-            guard returned.commonattr & UInt32(ATTR_CMN_FILEID) != 0,
-                  returned.forkattr & attributes.forkattr == attributes.forkattr,
-                  bytes.loadUnaligned(fromByteOffset: 24, as: UInt64.self) == inode,
-                  bytes.loadUnaligned(fromByteOffset: 40, as: UInt64.self) & UInt64(EF_IS_PURGEABLE) != 0 else { return nil }
-            return max(0, bytes.loadUnaligned(fromByteOffset: 32, as: Int64.self))
-        }
-    }
+    case logical = "파일 크기", allocated = "할당 크기"
 }
 
 // Published only after construction; unchanged subtrees are shared across snapshots.
@@ -103,7 +15,6 @@ final class FileNode: @unchecked Sendable {
     let children: [FileNode]
     let logicalBytes: Int64
     let allocatedBytes: Int64
-    let recovery: FileRecovery
     let fileCount: Int
     let folderCount: Int
     let unreadableCount: Int
@@ -114,7 +25,7 @@ final class FileNode: @unchecked Sendable {
 
     init(name: String, isDirectory: Bool = false, isLink: Bool = false,
          logical: Int64 = 0, allocated: Int64 = 0, children: [FileNode] = [], error: Int32 = 0,
-         isVolumeBoundary: Bool = false, isPendingScan: Bool = false, recovery: FileRecovery = .none) {
+         isVolumeBoundary: Bool = false, isPendingScan: Bool = false) {
         self.name = name
         self.isDirectory = isDirectory
         self.isLink = isLink
@@ -131,28 +42,12 @@ final class FileNode: @unchecked Sendable {
         unreadableCount = children.reduce(error == 0 ? 0 : 1) { $0 + $1.unreadableCount }
         excludedVolumeCount = children.reduce(isVolumeBoundary ? 1 : 0) { $0 + $1.excludedVolumeCount }
         pendingFolderCount = children.reduce(isPendingScan ? 1 : 0) { $0 + $1.pendingFolderCount }
-        if children.isEmpty { self.recovery = recovery }
-        else {
-            var allocated = recovery.allocatedBytes, privateBytes = recovery.privateBytes
-            var files = recovery.fileCount, unknown = recovery.unknownFiles, privateUnknown = recovery.privateUnknownFiles
-            for child in children {
-                allocated += child.recovery.allocatedBytes
-                privateBytes += child.recovery.privateBytes
-                files += child.recovery.fileCount
-                unknown += child.recovery.unknownFiles
-                privateUnknown += child.recovery.privateUnknownFiles
-            }
-            self.recovery = files == 0 && unknown == 0 ? .none
-                : FileRecovery(allocated: allocated, privateBytes: privateBytes, files: files,
-                               unknownFiles: unknown, privateUnknownFiles: privateUnknown)
-        }
     }
 
     func bytes(_ metric: SizeMetric) -> Int64 {
         switch metric {
         case .logical: return logicalBytes
         case .allocated: return allocatedBytes
-        case .purgeable: return recovery.allocatedBytes
         }
     }
 
@@ -211,7 +106,6 @@ enum FileScanner {
         let level: Int
         let isVolumeBoundary: Bool
         let isPendingScan: Bool
-        var recoveryCandidates: [(index: Int, inode: UInt64, links: nlink_t)] = []
         var children: [FileNode] = []
     }
 
@@ -223,9 +117,13 @@ enum FileScanner {
         private let workers: Int
         private let partialInterval: UInt64
         private let condition = NSCondition()
+        private let publication = NSLock()
         private var next = 0
         private var remaining: Int
         private var aborted = false
+        // Workers exchange pending updates under condition; publication alone owns the merged cache.
+        private var pendingNodes: [String: FileNode] = [:]
+        private var pendingBranches = Set<String>()
         private var nodes: [String: FileNode] = [:]
         private var branches = Set<String>()
         private var visited: Int
@@ -263,7 +161,7 @@ enum FileScanner {
             var path = url.path
             for component in ChangeBatch.relativeComponents(child.path, root: path).dropLast() {
                 path = path == "/" ? path + component : path + "/" + component
-                branches.insert(path)
+                pendingBranches.insert(path)
             }
             condition.broadcast()
         }
@@ -273,7 +171,7 @@ enum FileScanner {
         func finish(path: String, node: FileNode, count: Int,
                     partial: ((FileNode) -> Void)?, progress: ((Int) -> Void)?) {
             condition.lock()
-            nodes[path] = node
+            pendingNodes[path] = node
             active.removeValue(forKey: path)
             visited += max(0, count - 1) // The shallow pass already counted this directory.
             remaining -= 1
@@ -281,34 +179,53 @@ enum FileScanner {
             let now = DispatchTime.now().uptimeNanoseconds
             let report = now - lastProgress > 150_000_000 ? visited + active.values.reduce(0, +) : nil
             if report != nil { lastProgress = now }
-            publish(partial, force: remaining == 0)
+            let complete = remaining == 0
             condition.unlock()
+            publish(partial, force: complete)
             if let report { progress?(report) }
         }
         func update(path: String, count: Int, node: FileNode? = nil,
                     partial: ((FileNode) -> Void)? = nil, progress: ((Int) -> Void)? = nil) {
             condition.lock()
             active[path] = max(0, count - 1)
-            if let node { nodes[path] = node }
+            if let node { pendingNodes[path] = node }
             let now = DispatchTime.now().uptimeNanoseconds
             let report = now - lastProgress > 150_000_000 ? visited + active.values.reduce(0, +) : nil
             if report != nil { lastProgress = now }
-            if node != nil { publish(partial) }
             condition.unlock()
+            if node != nil { publish(partial) }
             if let report { progress?(report) }
         }
         private func publish(_ callback: ((FileNode) -> Void)?, force: Bool = false) {
+            // Coalesce overlapping publications so other workers keep scanning instead of waiting.
+            guard let callback, publication.try() else { return }
+            defer { publication.unlock() }
+            condition.lock()
             let now = DispatchTime.now().uptimeNanoseconds
-            guard let callback, force || now - lastPartial >= partialInterval else { return }
+            guard !aborted, force || now - lastPartial >= partialInterval else {
+                condition.unlock()
+                return
+            }
             lastPartial = now
-            // Serialize delivery separately from progress; progress must not starve tree updates.
+            condition.unlock()
             callback(mergedRoot())
         }
         func result() -> (FileNode, Int) {
-            condition.lock(); defer { condition.unlock() }
+            publication.lock(); defer { publication.unlock() }
+            condition.lock()
+            let visited = self.visited
+            condition.unlock()
             return (mergedRoot(), visited)
         }
         private func mergedRoot() -> FileNode {
+            condition.lock()
+            let updates = pendingNodes
+            let newBranches = pendingBranches
+            pendingNodes = [:]
+            pendingBranches = []
+            condition.unlock()
+            nodes.merge(updates) { _, latest in latest }
+            branches.formUnion(newBranches)
             func merge(_ node: FileNode, at path: String, isRoot: Bool = false) -> FileNode {
                 guard isRoot || branches.contains(path) else { return node }
                 let children = node.children.map { child -> FileNode in
@@ -401,7 +318,6 @@ enum FileScanner {
         var visited = 0
         var lastProgress = start
         var lastPartial = start
-        var recoveryBuffer = [UInt8](repeating: 0, count: 65_536)
         while true {
             // errno must be reset just before fts_read, not before other Swift/runtime work.
             errno = 0
@@ -425,32 +341,7 @@ enum FileScanner {
                 if pending { fts_set(stream, entry, FTS_SKIP) }
                 visited += 1
             case FTS_DP:
-                guard var frame = frames.popLast() else { continue }
-                // Wait for fts to finish its own traversal. Only folders with regular files
-                // need recovery metadata; ordinary immutable file nodes can be reused.
-                if !frame.recoveryCandidates.isEmpty {
-                    let path = String(cString: entry.pointee.fts_path)
-                    let states = try RecoveryMetadata.directory(path, buffer: &recoveryBuffer, token: token)
-                    for candidate in frame.recoveryCandidates {
-                        let child = frame.children[candidate.index]
-                        let recovery: FileRecovery
-                        switch states?[candidate.inode] ?? .unknown {
-                        case .ordinary: continue
-                        case .unknown: recovery = .unknown
-                        case .purgeable:
-                            let childPath = path == "/" ? path + child.name : path + "/" + child.name
-                            // Surviving hard links keep the inode's blocks allocated.
-                            let privateBytes = candidate.links > 1 ? 0 : childPath.withCString {
-                                RecoveryMetadata.privateBytes($0, inode: candidate.inode)
-                            }
-                            recovery = FileRecovery(allocated: child.allocatedBytes,
-                                privateBytes: min(child.allocatedBytes, privateBytes ?? 0), files: 1,
-                                privateUnknownFiles: privateBytes == nil ? 1 : 0)
-                        }
-                        frame.children[candidate.index] = FileNode(name: child.name, logical: child.logicalBytes,
-                                                                  allocated: child.allocatedBytes, recovery: recovery)
-                    }
-                }
+                guard let frame = frames.popLast() else { continue }
                 finished = FileNode(name: frame.name, isDirectory: true, children: frame.children,
                                     isVolumeBoundary: frame.isVolumeBoundary,
                                     isPendingScan: frame.isPendingScan)
@@ -468,10 +359,6 @@ enum FileScanner {
             default:
                 let metadata = entry.pointee.fts_statp?.pointee
                 let allocated = Int64(metadata?.st_blocks ?? 0) * 512
-                if let metadata, metadata.st_mode & S_IFMT == S_IFREG, !frames.isEmpty {
-                    let index = frames.count - 1
-                    frames[index].recoveryCandidates.append((frames[index].children.count, UInt64(metadata.st_ino), metadata.st_nlink))
-                }
                 finished = FileNode(name: name, isLink: info == FTS_SL || info == FTS_SLNONE,
                                     logical: Int64(metadata?.st_size ?? 0),
                                     allocated: allocated)

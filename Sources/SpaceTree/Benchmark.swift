@@ -71,11 +71,6 @@ enum Benchmark {
         report["allocated_bytes"] = snapshot.allocatedBytes
         report["unreadable_items"] = snapshot.unreadableCount
         report["logical_bytes"] = snapshot.logicalBytes
-        report["purgeable_allocated_bytes"] = snapshot.recovery.allocatedBytes
-        report["purgeable_private_bytes"] = snapshot.recovery.privateBytes
-        report["purgeable_files"] = snapshot.recovery.fileCount
-        report["purgeable_unknown_files"] = snapshot.recovery.unknownFiles
-        report["purgeable_private_unknown_files"] = snapshot.recovery.privateUnknownFiles
         report["first_scan_ms"] = firstMS
         report["snapshot_rss_bytes"] = residentBytes()
         if let space = DiskSpace.read(url) {
@@ -91,9 +86,7 @@ enum Benchmark {
             report["excluded_volumes"] = snapshot.excludedVolumeCount
             report["top_level"] = snapshot.children.map { node -> [String: Any] in
                 ["name": node.name, "logical_bytes": node.logicalBytes, "allocated_bytes": node.allocatedBytes,
-                 "files": node.fileCount, "unreadable_items": node.unreadableCount,
-                 "purgeable_allocated_bytes": node.recovery.allocatedBytes, "purgeable_private_bytes": node.recovery.privateBytes,
-                 "purgeable_files": node.recovery.fileCount, "purgeable_unknown_files": node.recovery.unknownFiles]
+                 "files": node.fileCount, "unreadable_items": node.unreadableCount]
             }
             let data = try JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys])
             print(String(decoding: data, as: UTF8.self))

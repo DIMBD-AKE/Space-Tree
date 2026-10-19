@@ -196,7 +196,6 @@ final class BrowserModel: ObservableObject {
         if query.isEmpty && metric == .logical { rows = children; return }
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             var nodes = query.isEmpty ? children : children.filter { $0.name.localizedStandardContains(query) }
-            if metric == .purgeable { nodes.removeAll { $0.recovery.fileCount == 0 } }
             if metric != .logical {
                 nodes.sort { $0.bytes(metric) == $1.bytes(metric) ? $0.name < $1.name : $0.bytes(metric) > $1.bytes(metric) }
             }

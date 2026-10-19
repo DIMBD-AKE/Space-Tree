@@ -1,75 +1,49 @@
 # Space Tree
 
-macOS용 가벼운 파일 용량 분석기. 폴더를 선택하면 전체 하위 파일을 스캔하고 용량에 비례하는 트리맵으로 표시합니다. Finder나 다른 앱에서 파일이 바뀌면 자동 갱신합니다.
+**디스크 공간을 눈으로 탐색하세요.**
+
+Space Tree는 macOS용 파일 용량 분석기입니다. 큰 파일과 폴더를 트리맵으로 한눈에 찾고, 폴더 안으로 들어가며 공간이 어디에 쓰이는지 확인할 수 있습니다. Finder에서 파일이 바뀌면 분석 결과도 자동으로 갱신됩니다.
+
+[**최신 버전 다운로드**](https://github.com/DIMBD-AKE/Space-Tree/releases/latest) · [업데이트 내역](CHANGELOG.md)
+
+![Space Tree의 트리맵과 폴더 목록, 디스크 용량 요약 화면](docs/images/space-tree.png)
+
+*예시 파일로 촬영한 실제 앱 화면입니다.*
+
+## 주요 기능
+
+- **용량을 한눈에** — 파일과 폴더의 크기를 면적으로 보여주는 트리맵과 용량순 목록을 제공합니다.
+- **폴더를 따라 탐색** — 트리맵에서 폴더를 클릭해 들어가고, 경로 버튼으로 돌아올 수 있습니다. 이름 검색과 Finder 연결도 지원합니다.
+- **변경 사항 자동 반영** — 파일 생성·수정·이동·삭제를 감지합니다. 재분석 중에도 기존 트리맵과 탐색 위치를 유지합니다.
+- **분석 중에도 탐색** — 전체 분석이 끝나기 전부터 부분 결과를 확인할 수 있습니다.
+- **필요한 용량 정보** — 파일 크기·할당 크기를 전환하고, 상단에서 디스크 전체 사용량과 회수 예상 공간을 확인합니다.
+- **가벼운 로컬 분석** — 파일 내용 대신 메타데이터를 조회하고, 바뀐 경로를 중심으로 다시 분석합니다. 용량과 트리맵 변화는 부드럽게 이어집니다.
 
 ## 설치
 
-macOS 13 이상에서 [최신 릴리스](https://github.com/DIMBD-AKE/Space-Tree/releases/latest)의 DMG를 다운로드하고 `Space Tree.app`을 `Applications`로 옮기세요. 배포 앱은 Apple Silicon과 Intel을 모두 지원하며 Developer ID 서명과 Apple 공증을 거칩니다.
+**macOS 13 이상 · Apple Silicon 및 Intel 지원**
 
-## 소스에서 실행
+1. [최신 릴리스](https://github.com/DIMBD-AKE/Space-Tree/releases/latest)에서 `Space-Tree-…-universal.dmg`를 다운로드합니다.
+2. DMG를 열고 **Space Tree.app**을 **Applications**로 옮깁니다.
+3. 앱을 실행한 뒤 분석할 폴더 또는 **디스크**를 선택합니다.
 
-macOS 13 이상과 Xcode Command Line Tools가 필요합니다. 외부 패키지는 사용하지 않습니다.
+배포 앱과 DMG는 Developer ID 서명과 Apple 공증을 거칩니다. 처음 안내에 따라 **전체 디스크 접근**을 허용하면 휴지통과 보호된 폴더를 더 넓게 분석할 수 있습니다. macOS의 시스템 보호나 다른 사용자의 파일 권한은 그대로 적용됩니다.
 
-```sh
-bash scripts/build-app.sh
-open "dist/Space Tree.app"
-```
+## 사용 방법
 
-생성된 `.app`은 Finder에서 더블 클릭하거나 응용 프로그램 폴더로 옮겨 사용할 수 있습니다. 현재 Mac의 아키텍처로 빌드합니다. 설치된 Developer ID Application 또는 Apple Development 인증서로 서명하여 빌드마다 앱의 권한 식별자가 바뀌지 않게 합니다. `SPACETREE_SIGNING_IDENTITY`로 인증서를 지정할 수 있습니다. 인증서가 없으면 임시 서명을 사용하며 다시 빌드한 뒤 권한 재설정이 필요할 수 있습니다.
+| 작업 | 방법 |
+| --- | --- |
+| 폴더 열기 | 상단 **폴더 열기** 또는 `⌘O` |
+| 하위 폴더로 이동 | 트리맵 클릭 또는 오른쪽 목록에서 더블 클릭 |
+| 상위 폴더로 이동 | 경로 버튼 또는 `⌘↑` |
+| Finder에서 보기 | 경로 오른쪽 **Finder** 또는 `⇧⌘R` |
+| 전체 다시 분석 | 새로 고침 또는 `⌘R` |
+| 용량 기준 변경 | 공간 지도 제목 옆 **파일 크기 / 할당 크기** |
 
-## 로컬 릴리스 빌드
+**파일 크기**는 파일의 길이, **할당 크기**는 파일마다 보고된 디스크 블록 사용량의 합계입니다. APFS 공유 블록·압축·하드 링크 등의 영향으로 폴더 합계와 실제 디스크 사용량은 다를 수 있습니다. **디스크 회수 예상**은 macOS가 제공하는 디스크 전체 추정치입니다.
 
-GitHub Actions를 사용하지 않습니다. Keychain의 Developer ID Application 인증서와 공증 자격 증명으로 로컬에서 Universal 앱과 DMG를 빌드·서명·공증합니다. Hardened Runtime과 타임스탬프를 적용하고 앱과 DMG 모두 공증 티켓을 붙여 검증합니다.
+숨김 파일과 앱 패키지 내부도 분석하며, 심볼릭 링크와 다른 마운트 볼륨은 따라가지 않습니다. 읽을 수 없는 항목은 경고로 안내합니다.
 
-```sh
-SPACETREE_NOTARY_PROFILE=공증용-Keychain-프로필 bash scripts/build-release.sh
-```
+## 개발 및 성능 기록
 
-Keychain 프로필 대신 `SPACETREE_NOTARY_KEY`에 API 키 파일 경로, `SPACETREE_NOTARY_KEY_ID`에 키 ID, 팀 API 키라면 `SPACETREE_NOTARY_ISSUER`에 Issuer ID를 지정할 수 있습니다. 키 파일과 자격 증명은 저장소에 넣지 마세요. 결과는 `dist/Space-Tree-1.1.1-universal.dmg`과 `dist/SHA256SUMS.txt`입니다.
-
-## 사용
-
-- 트리맵의 폴더를 클릭하면 내부로 진입합니다. 파일을 클릭하면 상세 정보를 표시합니다.
-- 오른쪽 전체 목록에서는 폴더를 더블 클릭하거나 선택 후 Return을 누릅니다.
-- 경로 버튼 또는 `⌘↑`로 상위 폴더로 이동합니다. `⌘O`로 새 폴더를 엽니다.
-- `⌘R`은 전체 재스캔, `⇧⌘R`은 선택한 항목을 Finder에 표시합니다.
-- 스캔 중지는 자동 추적도 멈춥니다. 새로 고침하면 전체를 재스캔하고 추적을 재개합니다.
-- 이름 검색은 현재 폴더의 항목을 검색합니다. 용량순 목록은 모든 항목을 유지합니다.
-- 기본 면적은 파일 크기입니다. 할당 크기 또는 `회수 대상` 기준으로 전환할 수 있습니다. 회수 대상 모드는 파일시스템이 회수 가능하다고 표시한 파일과 그 파일이 들어 있는 폴더만 보여주며, 기존 경로 탐색과 Finder 버튼을 그대로 사용할 수 있습니다.
-- 첫 분석이 끝나기 전에도 폴더를 탐색할 수 있습니다. 진행 중인 폴더의 내용과 용량을 약 0.5초 간격을 목표로 갱신합니다. 아직 합산 중인 용량은 `부분 결과`와 `…`, 대기 중인 폴더는 `분석 중`으로 표시합니다. 파일시스템 응답이 지연되면 갱신 간격도 길어질 수 있습니다.
-- 자동 갱신이나 전체 새로 고침 중에는 기존 트리맵과 탐색 위치, 선택 항목, 검색어를 유지합니다. 분석이 완료되면 새 결과로 교체하며, 진행 상황은 하단에 표시합니다.
-- Finder 버튼은 상단 경로 오른쪽에 있습니다. 폴더별 `회수 대상`은 표시된 파일의 할당량이며 `단독 회수 예상`은 다른 파일·스냅샷과 공유하지 않는 블록의 합계입니다. 하드 링크의 다른 경로가 남아 있으면 단독 회수 예상에 포함하지 않습니다. 여러 공유 파일을 함께 삭제하면 더 많은 공간이 돌아올 수 있습니다.
-- `디스크 전체 사용`은 현재 빈 공간을 제외한 전체 사용량입니다. `macOS 사용량 · 추정`은 시스템이 회수 예상 공간을 여유로 취급하는 API 기준이며, `디스크 회수 예상`과 함께 표시합니다. 세 값은 현재 폴더의 합계와 구분합니다. 시스템 추정치 전체를 특정 폴더에 배분하거나 폴더 합계에서 임의로 빼지 않습니다. 조회가 지원되지 않으면 `확인 불가`로 표시합니다.
-- 파일·폴더 개수와 회수·디스크 용량은 한 줄의 작은 카드로 표시합니다. 자세한 설명과 확인 불가 항목 수는 카드에 마우스를 올려 확인하고, 면적 기준은 공간 지도 제목 옆에서 선택합니다.
-- 요약 숫자와 트리맵 변경은 약 0.25초 동안 부드럽게 전환합니다. 연속 갱신은 현재 표시 상태에서 이어가며, 폴더 이동·창 크기 변경은 즉시 반영합니다. macOS의 `동작 줄이기`를 켜면 애니메이션을 생략합니다. 숫자 전환은 macOS 14 이상에서 숫자 효과, macOS 13에서는 페이드를 사용합니다.
-
-처음 분석하기 전에 전체 디스크 접근 설정을 안내합니다. macOS 시스템 설정에서 Space Tree에 한 번 허용하고 필요하면 앱을 재실행하세요. 휴지통 접근 확인을 통과하면 다음 실행부터 안내를 생략합니다. 나중에는 탐색 메뉴의 `전체 디스크 접근 설정…`으로 다시 열 수 있습니다. 이 권한을 허용해도 다른 사용자의 접근 제한이나 시스템 보호는 유지됩니다.
-
-숨김 파일과 `.app` 같은 패키지 내부를 포함합니다. 심볼릭 링크는 따라가지 않습니다. 접근할 수 없는 항목은 경고와 함께 집계에서 제외됩니다. 시작 화면의 `디스크`는 `/System/Volumes/Data`를 분석하며 `/`를 선택해도 같은 경로를 사용합니다. 다른 마운트 볼륨은 중복 합산하지 않고 별도로 열어 분석합니다.
-
-할당 크기는 파일마다 보고된 블록 사용량의 합계입니다. 하드 링크는 경로마다 합산하며, APFS 클론·공유 블록·스냅샷·압축 때문에 실제 회수 가능한 공간과 다를 수 있습니다. 클라우드 파일은 메타데이터만 조회하고 내용을 다운로드하지 않습니다.
-
-회수 대상 여부는 폴더마다 `getattrlistbulk`의 `EF_IS_PURGEABLE`로 묶어 조회합니다. 회수 대상인 파일만 `ATTR_CMNEXT_PRIVATESIZE`를 추가로 확인합니다. 일반 파일마다 Foundation URL 조회를 추가하지 않으며, 자동 갱신에도 같은 집계가 적용됩니다. 권한이나 파일시스템 지원 문제로 확인하지 못한 항목 수를 표시합니다. 현재 폴더에 확인된 회수 대상이 없더라도 macOS의 전체 회수 예상 공간은 클라이언트 앱의 캐시 정리 등 파일 플래그에 나타나지 않는 자원을 포함할 수 있습니다.
-
-변경 감시는 macOS FSEvents를 사용합니다. 스캔 전에 감시를 시작하고, 이벤트를 모아 변경 하위 트리만 재스캔합니다. 이벤트 유실·볼륨 변경 시 전체 재스캔합니다. 선택한 루트가 이동하면 열린 디렉터리 핸들로 새 위치를 추적합니다. 읽기 오류 시 마지막 스냅샷과 오류 상태를 표시합니다. 일부 네트워크 파일시스템은 로컬 FSEvents를 제공하지 않을 수 있으므로 수동 새로 고침을 사용할 수 있습니다.
-
-트리맵은 최대 1,200개 셀을 그리며 작은 항목은 하나로 묶습니다. 빈 파일과 모든 작은 항목은 가상화된 전체 목록에서 확인할 수 있습니다. 스캔을 실행하지 않는 동안 폴링 타이머를 사용하지 않습니다.
-
-## 검증과 성능
-
-```sh
-swift test
-swift build -c release
-.build/release/SpaceTree --benchmark --files 50000 --runs 5
-.build/release/SpaceTree --benchmark --files 100000 --runs 5
-.build/release/SpaceTree --benchmark --path /Applications/Xcode.app --runs 5 --skip-baseline
-.build/release/SpaceTree --benchmark --path /분석할/폴더 --parallelism 1 --single-pass
-.build/release/SpaceTree --benchmark --path /분석할/폴더 --parallelism 4 --single-pass
-.build/release/SpaceTree --benchmark --path /System/Volumes/Data --single-pass --observe-progress
-```
-
-생성 fixture는 100개 폴더에 파일을 분산하며 데이터 기록 없이 희소 파일 길이만 설정합니다. 내용 전송 성능이 아닌 메타데이터 탐색 성능을 측정합니다. 기본적으로 측정 후 fixture를 제거합니다. `--keep-fixture`를 사용하면 출력 JSON의 `path`에 남겨 재측정할 수 있습니다. `--path`로 지정한 경로의 파일은 변경하지 않습니다. `--single-pass`는 반복·기준 구현·레이아웃 측정을 생략하고 전체 분석 한 번과 상위 폴더 합계를 출력합니다.
-
-자세한 측정 조건과 결과는 [성능 보고서](docs/performance.md)에 기록합니다. 스캐너의 `Scan` signpost를 Instruments에서 확인할 수 있습니다.
-
-기술 근거: [Apple FSEvents 가이드](https://developer.apple.com/library/archive/documentation/Darwin/Conceptual/FSEvents_ProgGuide/UsingtheFSEventsFramework/UsingtheFSEventsFramework.html), [Apple fts(3) 문서](https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man3/fts.3.html).
+외부 패키지 없이 SwiftUI와 AppKit으로 만들었습니다. [소스 빌드·로컬 배포 방법](docs/development.md)과 [프로파일링·벤치마크 기록](docs/performance.md)을 확인할 수 있습니다.

@@ -4,19 +4,7 @@ import SwiftUI
 @testable import SpaceTree
 
 final class FileTreeTests: XCTestCase {
-    func testRecoveryAggregationAndDiskEstimates() {
-        let marked = FileNode(name: "cache", allocated: 4096,
-                              recovery: FileRecovery(allocated: 4096, privateBytes: 2048, files: 1))
-        let unknown = FileNode(name: "unknown", recovery: .unknown)
-        let nested = FileNode(name: "nested", isDirectory: true, children: [marked, unknown])
-        let root = FileNode(name: "root", isDirectory: true, children: [nested])
-        XCTAssertEqual(root.bytes(.purgeable), 4096)
-        XCTAssertEqual(root.recovery.privateBytes, 2048)
-        XCTAssertEqual(root.recovery.fileCount, 1)
-        XCTAssertEqual(root.recovery.unknownFiles, 1)
-        let replaced = root.replacing(["nested"][...], with: FileNode(name: "nested", isDirectory: true))
-        XCTAssertEqual(replaced.recovery.fileCount, 0)
-        XCTAssertEqual(replaced.recovery.unknownFiles, 0)
+    func testDiskEstimates() {
         let disk = DiskSpace(total: 500, available: 70, importantAvailable: 240)
         XCTAssertEqual(disk.used, 430)
         XCTAssertEqual(disk.reclaimableEstimate, 170)
@@ -28,50 +16,28 @@ final class FileTreeTests: XCTestCase {
     }
 
     @MainActor
-    func testNativePurgeableFilesNavigationAndLiveRefresh() async throws {
+    func testSizeMetricsNavigationAndLiveRefresh() async throws {
         let fm = FileManager.default
-        let root = fm.temporaryDirectory.appendingPathComponent("spacetree-recovery-\(UUID().uuidString)")
+        let root = fm.temporaryDirectory.appendingPathComponent("spacetree-navigation-\(UUID().uuidString)")
         let folder = root.appendingPathComponent("nested")
         try fm.createDirectory(at: folder, withIntermediateDirectories: true)
         defer { try? fm.removeItem(at: root) }
         let cache = folder.appendingPathComponent("cache")
         try Data(repeating: 0x53, count: 65_536).write(to: cache)
         try Data([1, 2, 3]).write(to: root.appendingPathComponent("ordinary"))
-        func mark(_ verb: String) throws {
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util")
-            process.arguments = ["-m", verb, cache.path]
-            process.standardOutput = FileHandle.nullDevice
-            process.standardError = FileHandle.nullDevice
-            try process.run()
-            process.waitUntilExit()
-            guard process.terminationStatus == 0 else { throw XCTSkip("Cannot mark the owned temporary fixture purgeable") }
-        }
-        try mark("-low")
-        XCTAssertEqual(try cache.resourceValues(forKeys: [.isPurgeableKey]).isPurgeable, true)
-        let serial = try FileScanner.scan(root, parallelism: 1).root
-        let parallel = try FileScanner.scan(root).root
-        XCTAssertEqual(serial.recovery.fileCount, 1)
-        XCTAssertEqual(serial.recovery.unknownFiles, 0)
-        XCTAssertEqual(serial.recovery.allocatedBytes, serial.node(at: ["nested", "cache"][...])!.allocatedBytes)
-        XCTAssertGreaterThan(serial.recovery.allocatedBytes, 0)
-        XCTAssertEqual(parallel.recovery.allocatedBytes, serial.recovery.allocatedBytes)
-        XCTAssertEqual(parallel.recovery.privateBytes, serial.recovery.privateBytes)
-        XCTAssertEqual(parallel.recovery.privateUnknownFiles, 0)
-        XCTAssertGreaterThan(serial.recovery.privateBytes, 0)
-
-        // Hard links are visible paths, but deleting one cannot release the inode's blocks.
-        try fm.linkItem(at: cache, to: root.appendingPathComponent("alias"))
-        let linked = try FileScanner.scan(root).root
-        XCTAssertEqual(linked.recovery.fileCount, 2)
-        XCTAssertEqual(linked.recovery.privateBytes, 0)
-
+        let previousFolder = UserDefaults.standard.object(forKey: "lastFolder")
         let model = BrowserModel()
-        defer { model.shutdown() }
+        defer {
+            model.shutdown()
+            if let previousFolder { UserDefaults.standard.set(previousFolder, forKey: "lastFolder") }
+            else { UserDefaults.standard.removeObject(forKey: "lastFolder") }
+        }
         model.open(root)
-        try await eventually { model.root?.recovery.fileCount == 2 && !model.isScanning }
-        model.metric = .purgeable
-        try await eventually { Set(model.rows.map(\.name)) == ["nested", "alias"] }
+        try await eventually { model.root?.logicalBytes == 65_539 && !model.isScanning }
+        XCTAssertEqual(SizeMetric.allCases, [.logical, .allocated])
+        XCTAssertNotNil(model.diskSpace)
+        model.metric = .allocated
+        try await eventually { Set(model.rows.map(\.name)) == ["nested", "ordinary"] }
         if let snapshotPath = ProcessInfo.processInfo.environment["SPACETREE_UI_SNAPSHOT"] {
             // Render a test-owned view offscreen; no interaction with the user's app/window.
             _ = NSApplication.shared
@@ -88,9 +54,11 @@ final class FileTreeTests: XCTestCase {
         }
         model.enter(model.rows.first { $0.name == "nested" }!)
         try await eventually { model.rows.map(\.name) == ["cache"] }
-        try mark("-clear")
-        try await eventually { model.root?.recovery.fileCount == 0 && !model.isScanning }
-        try await eventually { model.rows.isEmpty }
+        try Data(repeating: 0x53, count: 131_072).write(to: cache)
+        try await eventually { model.root?.logicalBytes == 131_075 && !model.isScanning }
+        try await eventually { model.rows.first?.logicalBytes == 131_072 }
+        XCTAssertEqual(model.currentNode?.bytes(.logical), 131_072)
+        XCTAssertGreaterThan(model.currentNode?.bytes(.allocated) ?? 0, 0)
         XCTAssertEqual(model.components, ["nested"])
     }
 
@@ -216,6 +184,49 @@ final class FileTreeTests: XCTestCase {
             guard case ScanError.cancelled = error else { return XCTFail("Expected cancellation, got \(error)") }
         }
         XCTAssertTrue(streamed, "A deep folder must publish growing totals while it is still being read")
+    }
+
+    func testParallelSnapshotsStayOrderedWithSlowConsumer() throws {
+        let fm = FileManager.default
+        let root = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try fm.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: root) }
+        for index in 0..<12 {
+            let folder = root.appendingPathComponent("branch-\(index)/nested")
+            try fm.createDirectory(at: folder, withIntermediateDirectories: true)
+            for file in 0..<256 {
+                try Data(repeating: 1, count: index + 1).write(to: folder.appendingPathComponent("file-\(file)"))
+            }
+        }
+        let serial = try FileScanner.scan(root, parallelism: 1)
+        let delivery = NSLock()
+        let state = NSLock()
+        var overlapping = false
+        var snapshots: [(files: Int, bytes: Int64, pending: Int)] = []
+        let parallel = try FileScanner.scan(root, partialInterval: 0, partial: { snapshot in
+            guard delivery.try() else {
+                state.lock(); overlapping = true; state.unlock()
+                return
+            }
+            defer { delivery.unlock() }
+            Thread.sleep(forTimeInterval: 0.002)
+            state.lock()
+            snapshots.append((snapshot.fileCount, snapshot.logicalBytes, snapshot.pendingFolderCount))
+            state.unlock()
+        })
+        XCTAssertFalse(overlapping, "Partial callbacks must remain serialized")
+        XCTAssertTrue(snapshots.contains { $0.files > 0 && $0.pending > 0 })
+        for (previous, next) in zip(snapshots, snapshots.dropFirst()) {
+            XCTAssertLessThanOrEqual(previous.files, next.files)
+            XCTAssertLessThanOrEqual(previous.bytes, next.bytes)
+        }
+        XCTAssertEqual(snapshots.last?.files, serial.root.fileCount)
+        XCTAssertEqual(snapshots.last?.bytes, serial.root.logicalBytes)
+        XCTAssertEqual(snapshots.last?.pending, 0)
+        XCTAssertEqual(parallel.root.logicalBytes, serial.root.logicalBytes)
+        XCTAssertEqual(parallel.root.allocatedBytes, serial.root.allocatedBytes)
+        XCTAssertEqual(parallel.root.folderCount, serial.root.folderCount)
+        XCTAssertEqual(parallel.visited, serial.visited)
     }
 
     @MainActor
