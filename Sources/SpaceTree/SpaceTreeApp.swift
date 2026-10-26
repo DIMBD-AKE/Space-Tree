@@ -158,6 +158,13 @@ struct BrowserView: View {
             }
             Button { model.reveal() } label: { Label("Finder", systemImage: "arrow.up.forward.square").font(.system(size: 11)) }
                 .buttonStyle(.bordered).help("선택한 항목 또는 현재 폴더를 Finder에서 보기 (⇧⌘R)")
+            Button {
+                guard let path = model.currentURL?.path else { return }
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(path, forType: .string)
+            } label: { Label("경로 복사", systemImage: "doc.on.doc").font(.system(size: 11)) }
+                .buttonStyle(.bordered).disabled(model.currentURL == nil)
+                .help("현재 폴더의 전체 경로를 클립보드에 복사")
         }.padding(.horizontal, 28).padding(.vertical, 17)
     }
 
